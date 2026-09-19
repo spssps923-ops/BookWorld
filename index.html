@@ -1,652 +1,314 @@
-```html
 <!DOCTYPE html>
 <html lang="uk">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="google-site-verification"
-        content="YOUR_GOOGLE_VERIFICATION_CODE"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BookWorld — Світ книг</title>
 
-    <!-- Основні стилі -->
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
 
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Підключення Supabase BookWorld -->
     <script src="supabase.js"></script>
-
-
-    <!-- Невеликі додаткові стилі саме для головної -->
-    <style>
-
-        /* Верхня частина сайту */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        /* Навігація */
-        .navigation {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        /* Інформація про користувача */
-        .user-info {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 40px;
-            padding: 8px 14px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.18);
-            color: white;
-            font-weight: bold;
-            max-width: 220px;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        /* Кнопки входу, виходу та адмінки */
-        .header-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 40px;
-            padding: 9px 14px;
-            border: none;
-            border-radius: 20px;
-            background: white;
-            color: #6a11cb;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: 0.2s;
-        }
-
-        .header-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        /* На маленькому екрані */
-        @media (max-width: 800px) {
-
-            .header {
-                justify-content: center;
-            }
-
-            .logo {
-                width: 100%;
-                text-align: center;
-            }
-
-            .navigation {
-                justify-content: center;
-                width: 100%;
-            }
-
-            .user-info,
-            .header-button {
-                margin: 3px;
-            }
-
-        }
-
-    </style>
-
 </head>
-
 
 <body>
 
-
-<!-- ==========================================
-     ШАПКА САЙТУ
-========================================== -->
-
 <header class="header">
-
-
-    <!-- Логотип -->
 
     <div class="logo">
         📚 BookWorld
     </div>
 
-
-    <!-- Навігація -->
-
     <nav class="navigation">
-
-        <a href="index.html">
-            🏠 Головна
-        </a>
-
-        <a
-            href="cart.html"
-            id="cart-link"
-        >
-            🛒 Кошик
-        </a>
-
+        <a href="index.html">🏠 Головна</a>
+        <a href="cart.html" class="cart-button" id="cart-link">🛒 Кошик</a>
     </nav>
 
+    <div id="user-info" class="user-info">
+        <span id="username-display"></span>
 
-    <!-- Інформація про користувача -->
+        <a href="login.html" id="login-button" class="header-button">
+            🔐 Увійти
+        </a>
 
-    <div
-        id="user-info"
-        class="user-info"
-    >
-        Гість
+        <button
+            id="logout-button"
+            class="header-button"
+            style="display: none;"
+            onclick="logout()">
+            🚪 Вийти
+        </button>
+
+        <button
+            id="admin-button"
+            class="header-button"
+            style="display: none;"
+            onclick="openAdmin()">
+            ⚙️ Адмінка
+        </button>
     </div>
-
-
-    <!-- Кнопка входу -->
-
-    <a
-        href="login.html"
-        id="login-button"
-        class="header-button"
-    >
-        🔐 Увійти
-    </a>
-
-
-    <!-- Кнопка виходу -->
-
-    <button
-        id="logout-button"
-        class="header-button"
-        style="display:none;"
-        type="button"
-    >
-        🚪 Вийти
-    </button>
-
-
-    <!-- Кнопка адмінки -->
-
-    <button
-        id="admin-button"
-        class="header-button"
-        style="display:none;"
-        type="button"
-        onclick="openAdmin()"
-    >
-        ⚙️ Адмінка
-    </button>
-
 
 </header>
 
 
+<main>
 
-<!-- ==========================================
-     ГОЛОВНА ЧАСТИНА
-========================================== -->
-
-<main class="container">
-
-
-    <!-- Вітальний блок -->
-
-    <section class="hero-section">
-
-        <h1>
-            📚 Ласкаво просимо до BookWorld!
-        </h1>
+    <!-- Головний блок -->
+    <section class="hero">
+        <h1>📚 Ласкаво просимо до BookWorld!</h1>
 
         <p>
-            Знайди свою наступну улюблену книгу
+            Відкривай нові світи, знаходь улюблені книги
+            та створюй власну книжкову колекцію.
         </p>
-
     </section>
 
 
-
-    <!-- ======================================
-         ЖАНРИ
-    ====================================== -->
-
+    <!-- Жанри -->
     <section class="genres-section">
 
+        <h2>📖 Обери жанр книги</h2>
 
-        <h2>
-            📚 Жанри книг
-        </h2>
+        <div id="genres-grid" class="genres-grid">
 
+            <a href="fantasy.html" class="genre-card">
+                <div class="genre-icon">🐉</div>
+                <h3>Фентезі</h3>
+                <p>Магія, дракони та неймовірні світи</p>
+            </a>
 
-        <p class="section-description">
-            Обери жанр книги через меню «Жанри» у верхній частині сайту.
-        </p>
+            <a href="sci-fi.html" class="genre-card">
+                <div class="genre-icon">🚀</div>
+                <h3>Фантастика</h3>
+                <p>Космос, технології та майбутнє</p>
+            </a>
 
+            <a href="detective.html" class="genre-card">
+                <div class="genre-icon">🔎</div>
+                <h3>Детектив</h3>
+                <p>Таємниці, злочини та розслідування</p>
+            </a>
 
-        <div
-            id="genres-grid"
-            class="genres-grid"
-        >
+            <a href="romance.html" class="genre-card">
+                <div class="genre-icon">❤️</div>
+                <h3>Романтика</h3>
+                <p>Кохання, почуття та стосунки</p>
+            </a>
+
+            <a href="horror.html" class="genre-card">
+                <div class="genre-icon">👻</div>
+                <h3>Жахи</h3>
+                <p>Страх, містика та надприродне</p>
+            </a>
+
+            <a href="adventure.html" class="genre-card">
+                <div class="genre-icon">🗺️</div>
+                <h3>Пригоди</h3>
+                <p>Подорожі, небезпеки та відкриття</p>
+            </a>
+
+            <a href="history.html" class="genre-card">
+                <div class="genre-icon">🏰</div>
+                <h3>Історичні</h3>
+                <p>Минуле, події та видатні постаті</p>
+            </a>
+
+            <a href="classic.html" class="genre-card">
+                <div class="genre-icon">📜</div>
+                <h3>Класика</h3>
+                <p>Відомі твори світової літератури</p>
+            </a>
+
+            <a href="thriller.html" class="genre-card">
+                <div class="genre-icon">🔪</div>
+                <h3>Трилери</h3>
+                <p>Напруга, небезпека та несподівані повороти</p>
+            </a>
+
         </div>
-
 
     </section>
 
 
-
-    <!-- ======================================
-         ІНФОРМАЦІЙНИЙ БЛОК
-    ====================================== -->
-
+    <!-- Інформація -->
     <section class="info-section">
 
+        <div class="info-card">
+            <div class="info-icon">📚</div>
 
-        <h2>
-            📖 Як користуватися BookWorld?
-        </h2>
+            <h3>Великий вибір</h3>
 
-
-        <div class="info-cards">
-
-
-            <div class="info-card">
-
-                <div class="info-icon">
-                    📚
-                </div>
-
-                <h3>
-                    Обери жанр
-                </h3>
-
-                <p>
-                    Натисни кнопку «Жанри» у верхньому меню
-                    та обери потрібний жанр.
-                </p>
-
-            </div>
-
-
-
-            <div class="info-card">
-
-                <div class="info-icon">
-                    🔎
-                </div>
-
-                <h3>
-                    Знайди книгу
-                </h3>
-
-                <p>
-                    Переглядай книги та відкривай
-                    детальну інформацію про них.
-                </p>
-
-            </div>
-
-
-
-            <div class="info-card">
-
-                <div class="info-icon">
-                    🛒
-                </div>
-
-                <h3>
-                    Додай до кошика
-                </h3>
-
-                <p>
-                    Додавай книги до свого особистого
-                    кошика після входу в акаунт.
-                </p>
-
-            </div>
-
-
+            <p>
+                Знаходь книги різних жанрів
+                та обирай те, що тобі подобається.
+            </p>
         </div>
 
 
-    </section>
+        <div class="info-card">
+            <div class="info-icon">🛒</div>
 
+            <h3>Зручний кошик</h3>
+
+            <p>
+                Додавай книги до кошика
+                та переглядай свою колекцію.
+            </p>
+        </div>
+
+
+        <div class="info-card">
+            <div class="info-icon">✨</div>
+
+            <h3>Нові відкриття</h3>
+
+            <p>
+                Відкривай для себе нових авторів
+                та цікаві історії.
+            </p>
+        </div>
+
+    </section>
 
 </main>
 
 
-
-<!-- ==========================================
-     ПІДВАЛ
-========================================== -->
-
 <footer class="footer">
-
-    © 2026 BookWorld
-
+    <p>© 2026 BookWorld — Світ книг</p>
 </footer>
-
-
-
-<!-- ==========================================
-     ОСНОВНИЙ JAVASCRIPT
-========================================== -->
-
-<script src="script.js"></script>
 
 
 <script>
 
-// ==========================================
-// BOOKWORLD — КОРИСТУВАЧ
-// ==========================================
+    // Підключення до Supabase
+    const indexDB = window.BookWorldSupabase;
 
 
-// Підключення Supabase
+    // Перевіряємо авторизацію користувача
+    async function checkUser() {
 
-const indexDB =
-    window.BookWorldSupabase;
-
-
-// ==========================================
-// ПЕРЕВІРКА КОРИСТУВАЧА
-// ==========================================
-
-async function checkUser() {
-
-    try {
-
-        const result =
-            await indexDB.auth.getUser();
+        const {
+            data: { user }
+        } = await indexDB.auth.getUser();
 
 
-        const user =
-            result.data?.user;
+        const loginButton = document.getElementById("login-button");
+        const logoutButton = document.getElementById("logout-button");
+        const adminButton = document.getElementById("admin-button");
+        const usernameDisplay = document.getElementById("username-display");
 
 
-        const userInfo =
-            document.getElementById(
-                "user-info"
-            );
-
-
-        const loginButton =
-            document.getElementById(
-                "login-button"
-            );
-
-
-        const logoutButton =
-            document.getElementById(
-                "logout-button"
-            );
-
-
-        const adminButton =
-            document.getElementById(
-                "admin-button"
-            );
-
-
-        // ======================================
-        // КОРИСТУВАЧ НЕ УВІЙШОВ
-        // ======================================
-
+        // Якщо користувач не увійшов
         if (!user) {
 
-            userInfo.textContent =
-                "Гість";
+            loginButton.style.display = "inline-block";
+            logoutButton.style.display = "none";
+            adminButton.style.display = "none";
 
-            loginButton.style.display =
-                "inline-flex";
-
-            logoutButton.style.display =
-                "none";
-
-            adminButton.style.display =
-                "none";
+            usernameDisplay.textContent = "";
 
             return;
-
         }
 
 
-        // ======================================
-        // КОРИСТУВАЧ УВІЙШОВ
-        // ======================================
-
-        loginButton.style.display =
-            "none";
-
-        logoutButton.style.display =
-            "inline-flex";
+        // Користувач увійшов
+        loginButton.style.display = "none";
+        logoutButton.style.display = "inline-block";
 
 
-        // Отримуємо профіль
-
-        const profileResult =
-            await indexDB
-                .from("profiles")
-                .select(
-                    "username, role"
-                )
-                .eq(
-                    "id",
-                    user.id
-                )
-                .maybeSingle();
+        // Отримуємо профіль користувача
+        const {
+            data: profile,
+            error
+        } = await indexDB
+            .from("profiles")
+            .select("username, role")
+            .eq("id", user.id)
+            .single();
 
 
-        const profile =
-            profileResult.data;
+        if (error) {
+
+            console.error("Помилка отримання профілю:", error);
+
+            usernameDisplay.textContent = user.email || "Користувач";
+
+            adminButton.style.display = "none";
+
+            return;
+        }
 
 
-        // Ім'я користувача
-
-        const username =
-            profile?.username ||
-            user.email ||
-            "Користувач";
+        // Показуємо ім'я користувача
+        usernameDisplay.textContent =
+            profile.username || user.email || "Користувач";
 
 
-        userInfo.innerHTML =
-            "👤 " +
-            escapeIndexHTML(
-                username
-            );
-
-
-        // ======================================
-        // ПЕРЕВІРКА АДМІНА
-        // ======================================
-
-        /*
-            Адмінка доступна двом ролям:
-
-            admin
-            super_admin
-
-            Тому твій super_admin
-            також повинен бачити кнопку.
-        */
-
+        // Адмінка доступна admin і super_admin
         if (
-            profile &&
-            (
-                profile.role === "admin" ||
-                profile.role === "super_admin"
-            )
+            profile.role === "admin" ||
+            profile.role === "super_admin"
         ) {
 
-            adminButton.style.display =
-                "inline-flex";
+            adminButton.style.display = "inline-block";
+
+        } else {
+
+            adminButton.style.display = "none";
 
         }
 
-        else {
-
-            adminButton.style.display =
-                "none";
-
-        }
-
-
     }
 
-    catch (error) {
 
-        console.error(
-            "Помилка перевірки користувача:",
-            error
-        );
+    // Вихід з акаунта
+    async function logout() {
 
-    }
-
-}
+        const { error } = await indexDB.auth.signOut();
 
 
+        if (error) {
 
-// ==========================================
-// ВИХІД
-// ==========================================
+            console.error("Помилка виходу:", error);
 
-async function logout() {
-
-    try {
-
-        const result =
-            await indexDB.auth.signOut();
-
-
-        if (result.error) {
-
-            console.error(
-                result.error
-            );
+            alert("Не вдалося вийти з акаунта.");
 
             return;
-
         }
 
 
-        window.location.href =
-            "index.html";
-
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-    }
-
-}
-
-
-
-// ==========================================
-// ЗАХИСТ HTML
-// ==========================================
-
-function escapeIndexHTML(text) {
-
-    if (
-        text === null ||
-        text === undefined
-    ) {
-
-        return "";
+        window.location.reload();
 
     }
 
 
-    return String(text)
+    // Відкрити адмінку
+    function openAdmin() {
 
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-
-// ==========================================
-// ЗАПУСК
-// ==========================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        checkUser();
-
-
-        // Кнопка виходу
-
-        const logoutButton =
-            document.getElementById(
-                "logout-button"
-            );
-
-
-        if (logoutButton) {
-
-            logoutButton.addEventListener(
-                "click",
-                logout
-            );
-
-        }
+        window.location.href = "admin.html";
 
     }
-);
+
+
+    // Екрануємо HTML
+    function escapeIndexHTML(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // Запускаємо перевірку користувача
+    checkUser();
 
 </script>
 
-
 </body>
-
 </html>
-```

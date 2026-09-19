@@ -1,3 +1,2024 @@
+```html
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Адмінка — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
+    <style>
+        /* ==========================================
+           АДМІНКА BOOKWORLD
+        ========================================== */
+
+        .admin-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.08);
+        }
+
+        .admin-section h2 {
+            margin-top: 0;
+            color: #6a11cb;
+        }
+
+        .admin-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 9px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .admin-button {
+            border: none;
+            border-radius: 9px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #6a11cb, #e83e8c);
+            color: white;
+        }
+
+        .cancel-button {
+            background: #eee5ff;
+            color: #6a11cb;
+        }
+
+        .delete-button {
+            background: #ffe5e5;
+            color: #b42318;
+        }
+
+        .search-box {
+            margin-bottom: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 9px;
+            box-sizing: border-box;
+        }
+
+        .books-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .book-admin-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .book-admin-info {
+            min-width: 0;
+        }
+
+        .book-admin-info h3 {
+            margin: 0 0 5px;
+        }
+
+        .book-admin-info p {
+            margin: 4px 0;
+            color: #666;
+        }
+
+        .book-admin-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .participants-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .participant {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .participant-info strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .participant-info small {
+            color: #777;
+        }
+
+        .participant-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .participant-controls select {
+            padding: 9px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .role-save {
+            background: #eee5ff;
+            color: #6a11cb;
+        }
+
+        .role-save:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .my-account {
+            background: #f5efff;
+        }
+
+        .genres-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .genre-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .genre-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .genre-form input {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f5f3ef;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            padding: 14px 18px;
+            border-radius: 10px;
+            color: white;
+            background: #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,.2);
+        }
+
+        .toast.success {
+            background: #198754;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        @media (max-width: 700px) {
+
+            .admin-form {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            .book-admin-card,
+            .participant {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .book-admin-actions,
+            .participant-controls {
+                width: 100%;
+            }
+
+            .book-admin-actions button,
+            .participant-controls button,
+            .participant-controls select {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <nav class="navigation">
+        <a href="index.html">🏠 Головна</a>
+        <a href="cart.html">🛒 Кошик</a>
+    </nav>
+
+</header>
+
+
+<main>
+
+    <h1>⚙️ Адмін-панель</h1>
+
+
+    <!-- ==========================================
+         УЧАСНИКИ
+    ========================================== -->
+
+    <section class="admin-section">
+
+        <h2>👥 Керування учасниками</h2>
+
+        <div id="participants-status" class="status">
+            Завантаження учасників...
+        </div>
+
+        <div id="participants-list" class="participants-list"></div>
+
+    </section>
+
+
+    <!-- ==========================================
+         ДОДАВАННЯ / РЕДАГУВАННЯ КНИГИ
+    ========================================== -->
+
+    <section class="admin-section">
+
+        <h2 id="form-title">
+            ➕ Додати книгу
+        </h2>
+
+        <form id="book-form" class="admin-form">
+
+            <input
+                type="hidden"
+                id="edit-id"
+            >
+
+
+            <div class="form-group">
+
+                <label for="title">
+                    Назва
+                </label>
+
+                <input
+                    type="text"
+                    id="title"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="author">
+                    Автор
+                </label>
+
+                <input
+                    type="text"
+                    id="author"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="genre">
+                    Жанр
+                </label>
+
+                <select
+                    id="genre"
+                    required
+                ></select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="price">
+                    Ціна
+                </label>
+
+                <input
+                    type="number"
+                    id="price"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="year">
+                    Рік
+                </label>
+
+                <input
+                    type="number"
+                    id="year"
+                    min="0"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="pages">
+                    Сторінки
+                </label>
+
+                <input
+                    type="number"
+                    id="pages"
+                    min="0"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="language">
+                    Мова
+                </label>
+
+                <input
+                    type="text"
+                    id="language"
+                    placeholder="Українська"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="publisher">
+                    Видавництво
+                </label>
+
+                <input
+                    type="text"
+                    id="publisher"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="isbn">
+                    ISBN
+                </label>
+
+                <input
+                    type="text"
+                    id="isbn"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="rating">
+                    Рейтинг
+                </label>
+
+                <input
+                    type="number"
+                    id="rating"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value="0"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="series">
+                    Серія
+                </label>
+
+                <input
+                    type="text"
+                    id="series"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="book-code">
+                    Код книги
+                </label>
+
+                <input
+                    type="text"
+                    id="book-code"
+                    placeholder="f5"
+                >
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label for="image-url">
+                    🖼️ URL обкладинки
+                </label>
+
+                <input
+                    type="url"
+                    id="image-url"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label for="buy-link">
+                    🔗 Посилання на покупку
+                </label>
+
+                <input
+                    type="url"
+                    id="buy-link"
+                    placeholder="https://..."
+                >
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <label for="description">
+                    Опис
+                </label>
+
+                <textarea
+                    id="description"
+                    placeholder="Опис книги..."
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group full">
+
+                <div class="admin-buttons">
+
+                    <button
+                        type="submit"
+                        class="admin-button save-button"
+                    >
+                        💾 Зберегти книгу
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cancel-edit"
+                        class="admin-button cancel-button hidden"
+                    >
+                        ❌ Скасувати редагування
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- ==========================================
+         ЖАНРИ
+    ========================================== -->
+
+    <section class="admin-section">
+
+        <h2>📂 Керування жанрами</h2>
+
+        <div class="genre-form">
+
+            <input
+                type="text"
+                id="new-genre-name"
+                placeholder="Назва жанру"
+            >
+
+            <input
+                type="text"
+                id="new-genre-code"
+                placeholder="Код, наприклад f"
+            >
+
+            <button
+                type="button"
+                id="add-genre-button"
+                class="admin-button save-button"
+            >
+                ➕ Додати жанр
+            </button>
+
+        </div>
+
+        <div
+            id="genres-list"
+            class="genres-list"
+        ></div>
+
+    </section>
+
+
+    <!-- ==========================================
+         КНИГИ
+    ========================================== -->
+
+    <section class="admin-section">
+
+        <h2>📚 Книги</h2>
+
+        <div class="search-box">
+
+            <input
+                type="search"
+                id="book-search"
+                placeholder="🔎 Пошук книги або автора..."
+            >
+
+        </div>
+
+        <div
+            id="books-status"
+            class="status"
+        >
+            Завантаження книг...
+        </div>
+
+        <div
+            id="books-list"
+            class="books-list"
+        ></div>
+
+    </section>
+
+</main>
+
+
+<div
+    id="toast"
+    class="toast hidden"
+></div>
+
+
+<script>
+
+    /* ==========================================
+       SUPABASE
+    ========================================== */
+
+    const adminDB =
+        window.BookWorldSupabase;
+
+
+    /* ==========================================
+       ЗМІННІ
+    ========================================== */
+
+    let currentUserId = null;
+
+    let currentUserRole = null;
+
+    let allBooks = [];
+
+    let allGenres = [];
+
+
+    /* ==========================================
+       TOAST
+    ========================================== */
+
+    function showToast(message, type = "info") {
+
+        const toast =
+            document.getElementById("toast");
+
+        toast.textContent = message;
+
+        toast.className =
+            "toast " + type;
+
+        setTimeout(function() {
+
+            toast.classList.add("hidden");
+
+        }, 3000);
+
+    }
+
+
+    /* ==========================================
+       ПЕРЕВІРКА АДМІНА
+    ========================================== */
+
+    async function checkAdmin() {
+
+        const {
+            data: { session },
+            error
+        } =
+            await adminDB.auth.getSession();
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        if (!session) {
+
+            window.location.href =
+                "login.html";
+
+            return false;
+
+        }
+
+
+        currentUserId =
+            session.user.id;
+
+
+        const {
+            data: profile,
+            error: profileError
+        } =
+            await adminDB
+                .from("profiles")
+                .select("id, username, role")
+                .eq("id", currentUserId)
+                .single();
+
+
+        if (profileError) {
+            throw profileError;
+        }
+
+
+        if (
+            !profile ||
+            ![
+                "admin",
+                "super_admin"
+            ].includes(profile.role)
+        ) {
+
+            window.location.href =
+                "index.html";
+
+            return false;
+
+        }
+
+
+        currentUserRole =
+            profile.role;
+
+
+        return true;
+
+    }
+
+
+    /* ==========================================
+       ЖАНРИ
+    ========================================== */
+
+    async function loadGenres() {
+
+        const {
+            data,
+            error
+        } =
+            await adminDB
+                .from("genres")
+                .select("*")
+                .order("name");
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        allGenres =
+            data || [];
+
+
+        const select =
+            document.getElementById("genre");
+
+
+        select.innerHTML =
+            '<option value="">Оберіть жанр</option>';
+
+
+        allGenres.forEach(function(genre) {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                genre.id;
+
+            option.textContent =
+                genre.name;
+
+            select.appendChild(option);
+
+        });
+
+
+        renderGenres();
+
+    }
+
+
+    function renderGenres() {
+
+        const container =
+            document.getElementById(
+                "genres-list"
+            );
+
+
+        container.innerHTML = "";
+
+
+        if (!allGenres.length) {
+
+            container.innerHTML =
+                "<div>Жанрів поки немає.</div>";
+
+            return;
+
+        }
+
+
+        allGenres.forEach(function(genre) {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "genre-item";
+
+
+            const info =
+                document.createElement("span");
+
+            info.innerHTML =
+                "<strong>" +
+                escapeHTML(genre.name) +
+                "</strong> — " +
+                escapeHTML(genre.code || "");
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "admin-button delete-button";
+
+            deleteButton.textContent =
+                "🗑️ Видалити";
+
+
+            deleteButton.onclick =
+                function() {
+
+                    deleteGenre(genre.id);
+
+                };
+
+
+            item.appendChild(info);
+
+            item.appendChild(
+                deleteButton
+            );
+
+            container.appendChild(item);
+
+        });
+
+    }
+
+
+    async function addGenre() {
+
+        const name =
+            document
+                .getElementById("new-genre-name")
+                .value
+                .trim();
+
+        const code =
+            document
+                .getElementById("new-genre-code")
+                .value
+                .trim();
+
+
+        if (!name || !code) {
+
+            showToast(
+                "Заповни назву та код жанру.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const {
+            error
+        } =
+            await adminDB
+                .from("genres")
+                .insert({
+                    name: name,
+                    code: code
+                });
+
+
+        if (error) {
+
+            showToast(
+                "Не вдалося додати жанр: " +
+                error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        document
+            .getElementById(
+                "new-genre-name"
+            )
+            .value = "";
+
+
+        document
+            .getElementById(
+                "new-genre-code"
+            )
+            .value = "";
+
+
+        await loadGenres();
+
+
+        showToast(
+            "Жанр додано.",
+            "success"
+        );
+
+    }
+
+
+    async function deleteGenre(id) {
+
+        const confirmed =
+            confirm(
+                "Видалити цей жанр?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await adminDB
+                .from("genres")
+                .delete()
+                .eq("id", id);
+
+
+        if (error) {
+
+            showToast(
+                "Не вдалося видалити жанр: " +
+                error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        await loadGenres();
+
+
+        showToast(
+            "Жанр видалено.",
+            "success"
+        );
+
+    }
+
+
+    /* ==========================================
+       КНИГИ
+    ========================================== */
+
+    async function loadBooks() {
+
+        const status =
+            document.getElementById(
+                "books-status"
+            );
+
+
+        status.textContent =
+            "Завантаження книг...";
+
+
+        const {
+            data,
+            error
+        } =
+            await adminDB
+                .from("books")
+                .select(`
+                    *,
+                    genres (
+                        id,
+                        name,
+                        code
+                    )
+                `)
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (error) {
+
+            status.textContent =
+                "Помилка: " +
+                error.message;
+
+            throw error;
+
+        }
+
+
+        allBooks =
+            data || [];
+
+
+        renderBooks();
+
+    }
+
+
+    function renderBooks() {
+
+        const container =
+            document.getElementById(
+                "books-list"
+            );
+
+        const status =
+            document.getElementById(
+                "books-status"
+            );
+
+
+        const search =
+            document
+                .getElementById("book-search")
+                .value
+                .toLowerCase()
+                .trim();
+
+
+        const books =
+            allBooks.filter(function(book) {
+
+                const title =
+                    String(
+                        book.title || ""
+                    ).toLowerCase();
+
+                const author =
+                    String(
+                        book.author || ""
+                    ).toLowerCase();
+
+
+                return (
+                    title.includes(search) ||
+                    author.includes(search)
+                );
+
+            });
+
+
+        status.textContent =
+            "Книг: " +
+            books.length;
+
+
+        container.innerHTML = "";
+
+
+        if (!books.length) {
+
+            container.innerHTML =
+                "<div>Книг не знайдено.</div>";
+
+            return;
+
+        }
+
+
+        books.forEach(function(book) {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "book-admin-card";
+
+
+            const info =
+                document.createElement("div");
+
+            info.className =
+                "book-admin-info";
+
+
+            const title =
+                document.createElement("h3");
+
+            title.textContent =
+                book.title ||
+                "Без назви";
+
+
+            const author =
+                document.createElement("p");
+
+            author.textContent =
+                "Автор: " +
+                (book.author || "—");
+
+
+            const genre =
+                document.createElement("p");
+
+            genre.textContent =
+                "Жанр: " +
+                (
+                    book.genres?.name ||
+                    "—"
+                );
+
+
+            const price =
+                document.createElement("p");
+
+            price.textContent =
+                "Ціна: " +
+                (
+                    book.price ??
+                    0
+                ) +
+                " грн";
+
+
+            info.appendChild(title);
+
+            info.appendChild(author);
+
+            info.appendChild(genre);
+
+            info.appendChild(price);
+
+
+            const actions =
+                document.createElement("div");
+
+            actions.className =
+                "book-admin-actions";
+
+
+            const editButton =
+                document.createElement("button");
+
+            editButton.className =
+                "admin-button cancel-button";
+
+            editButton.textContent =
+                "✏️ Редагувати";
+
+
+            editButton.onclick =
+                function() {
+
+                    editBook(book);
+
+                };
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "admin-button delete-button";
+
+            deleteButton.textContent =
+                "🗑️ Видалити";
+
+
+            deleteButton.onclick =
+                function() {
+
+                    deleteBook(book.id);
+
+                };
+
+
+            actions.appendChild(
+                editButton
+            );
+
+            actions.appendChild(
+                deleteButton
+            );
+
+
+            card.appendChild(info);
+
+            card.appendChild(actions);
+
+
+            container.appendChild(card);
+
+        });
+
+    }
+
+
+    /* ==========================================
+       ЗБЕРЕГТИ КНИГУ
+    ========================================== */
+
+    document
+        .getElementById("book-form")
+        .addEventListener(
+            "submit",
+            saveBook
+        );
+
+
+    async function saveBook(event) {
+
+        event.preventDefault();
+
+
+        const id =
+            document
+                .getElementById("edit-id")
+                .value;
+
+
+        const book = {
+
+            title:
+                document
+                    .getElementById("title")
+                    .value
+                    .trim(),
+
+            author:
+                document
+                    .getElementById("author")
+                    .value
+                    .trim(),
+
+            genre_id:
+                document
+                    .getElementById("genre")
+                    .value,
+
+            description:
+                document
+                    .getElementById("description")
+                    .value
+                    .trim(),
+
+            image_url:
+                document
+                    .getElementById("image-url")
+                    .value
+                    .trim() || null,
+
+            price:
+                Number(
+                    document
+                        .getElementById("price")
+                        .value
+                ) || 0,
+
+            year:
+                Number(
+                    document
+                        .getElementById("year")
+                        .value
+                ) || null,
+
+            pages:
+                Number(
+                    document
+                        .getElementById("pages")
+                        .value
+                ) || null,
+
+            language:
+                document
+                    .getElementById("language")
+                    .value
+                    .trim() || null,
+
+            publisher:
+                document
+                    .getElementById("publisher")
+                    .value
+                    .trim() || null,
+
+            isbn:
+                document
+                    .getElementById("isbn")
+                    .value
+                    .trim() || null,
+
+            rating:
+                Number(
+                    document
+                        .getElementById("rating")
+                        .value
+                ) || 0,
+
+            series:
+                document
+                    .getElementById("series")
+                    .value
+                    .trim() || null,
+
+            buy_link:
+                document
+                    .getElementById("buy-link")
+                    .value
+                    .trim() || null,
+
+            book_code:
+                document
+                    .getElementById("book-code")
+                    .value
+                    .trim() || null
+
+        };
+
+
+        if (
+            !book.title ||
+            !book.author ||
+            !book.genre_id
+        ) {
+
+            showToast(
+                "Заповни назву, автора та жанр.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        let result;
+
+
+        if (id) {
+
+            result =
+                await adminDB
+                    .from("books")
+                    .update(book)
+                    .eq("id", id);
+
+        } else {
+
+            result =
+                await adminDB
+                    .from("books")
+                    .insert(book);
+
+        }
+
+
+        if (result.error) {
+
+            showToast(
+                "Помилка: " +
+                result.error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        showToast(
+            id
+                ? "Книгу оновлено. ✅"
+                : "Книгу додано. ✅",
+            "success"
+        );
+
+
+        clearForm();
+
+        await loadBooks();
+
+    }
+
+
+    /* ==========================================
+       РЕДАГУВАННЯ
+    ========================================== */
+
+    function editBook(book) {
+
+        document
+            .getElementById("edit-id")
+            .value =
+            book.id;
+
+
+        document
+            .getElementById("title")
+            .value =
+            book.title || "";
+
+
+        document
+            .getElementById("author")
+            .value =
+            book.author || "";
+
+
+        document
+            .getElementById("genre")
+            .value =
+            book.genre_id || "";
+
+
+        document
+            .getElementById("description")
+            .value =
+            book.description || "";
+
+
+        document
+            .getElementById("image-url")
+            .value =
+            book.image_url || "";
+
+
+        document
+            .getElementById("price")
+            .value =
+            book.price ?? "";
+
+
+        document
+            .getElementById("year")
+            .value =
+            book.year ?? "";
+
+
+        document
+            .getElementById("pages")
+            .value =
+            book.pages ?? "";
+
+
+        document
+            .getElementById("language")
+            .value =
+            book.language || "";
+
+
+        document
+            .getElementById("publisher")
+            .value =
+            book.publisher || "";
+
+
+        document
+            .getElementById("isbn")
+            .value =
+            book.isbn || "";
+
+
+        document
+            .getElementById("rating")
+            .value =
+            book.rating ?? 0;
+
+
+        document
+            .getElementById("series")
+            .value =
+            book.series || "";
+
+
+        document
+            .getElementById("buy-link")
+            .value =
+            book.buy_link || "";
+
+
+        document
+            .getElementById("book-code")
+            .value =
+            book.book_code || "";
+
+
+        document
+            .getElementById("form-title")
+            .textContent =
+            "✏️ Редагування книги";
+
+
+        document
+            .getElementById("cancel-edit")
+            .classList.remove("hidden");
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+
+
+    /* ==========================================
+       ОЧИСТИТИ ФОРМУ
+    ========================================== */
+
+    function clearForm() {
+
+        document
+            .getElementById("book-form")
+            .reset();
+
+
+        document
+            .getElementById("edit-id")
+            .value = "";
+
+
+        document
+            .getElementById("form-title")
+            .textContent =
+            "➕ Додати книгу";
+
+
+        document
+            .getElementById("cancel-edit")
+            .classList.add("hidden");
+
+    }
+
+
+    document
+        .getElementById("cancel-edit")
+        .addEventListener(
+            "click",
+            clearForm
+        );
+
+
+    /* ==========================================
+       ВИДАЛЕННЯ КНИГИ
+    ========================================== */
+
+    async function deleteBook(id) {
+
+        if (
+            !confirm(
+                "Точно видалити цю книгу?"
+            )
+        ) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await adminDB
+                .from("books")
+                .delete()
+                .eq("id", id);
+
+
+        if (error) {
+
+            showToast(
+                "Не вдалося видалити: " +
+                error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        showToast(
+            "Книгу видалено. 🗑️",
+            "success"
+        );
+
+
+        await loadBooks();
+
+    }
+
+
+    /* ==========================================
+       УЧАСНИКИ
+    ========================================== */
+
+    async function loadParticipants() {
+
+        const list =
+            document.getElementById(
+                "participants-list"
+            );
+
+        const status =
+            document.getElementById(
+                "participants-status"
+            );
+
+
+        const {
+            data,
+            error
+        } =
+            await adminDB
+                .from("profiles")
+                .select(
+                    "id, username, role, created_at"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (error) {
+
+            status.textContent =
+                "❌ Помилка: " +
+                error.message;
+
+            return;
+
+        }
+
+
+        status.textContent =
+            "Усього учасників: " +
+            data.length;
+
+
+        list.innerHTML = "";
+
+
+        data.forEach(function(user) {
+
+            const item =
+                document.createElement("div");
+
+
+            item.className =
+                "participant";
+
+
+            if (
+                user.id ===
+                currentUserId
+            ) {
+
+                item.classList.add(
+                    "my-account"
+                );
+
+            }
+
+
+            const info =
+                document.createElement("div");
+
+            info.className =
+                "participant-info";
+
+
+            const name =
+                document.createElement("strong");
+
+            name.textContent =
+                user.username ||
+                "Без імені";
+
+
+            const id =
+                document.createElement("small");
+
+            id.textContent =
+                user.id === currentUserId
+                    ? "Це ваш акаунт"
+                    : user.id;
+
+
+            info.appendChild(name);
+
+            info.appendChild(id);
+
+
+            const controls =
+                document.createElement("div");
+
+            controls.className =
+                "participant-controls";
+
+
+            const select =
+                document.createElement("select");
+
+
+            [
+                "user",
+                "admin",
+                "super_admin"
+            ].forEach(function(role) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value =
+                    role;
+
+                option.textContent =
+                    role;
+
+                if (
+                    role ===
+                    user.role
+                ) {
+
+                    option.selected =
+                        true;
+
+                }
+
+                select.appendChild(option);
+
+            });
+
+
+            const save =
+                document.createElement("button");
+
+            save.className =
+                "admin-button role-save";
+
+
+            if (
+                user.id ===
+                currentUserId
+            ) {
+
+                save.textContent =
+                    "🔒 Ваша роль";
+
+                save.disabled =
+                    true;
+
+                select.disabled =
+                    true;
+
+            } else {
+
+                save.textContent =
+                    "💾 Зберегти";
+
+                save.onclick =
+                    function() {
+
+                        updateRole(
+                            user.id,
+                            select.value,
+                            save
+                        );
+
+                    };
+
+            }
+
+
+            controls.appendChild(select);
+
+            controls.appendChild(save);
+
+
+            item.appendChild(info);
+
+            item.appendChild(controls);
+
+
+            list.appendChild(item);
+
+        });
+
+    }
+
+
+    async function updateRole(
+        userId,
+        role,
+        button
+    ) {
+
+        if (
+            userId ===
+            currentUserId
+        ) {
+
+            showToast(
+                "Власну роль змінити не можна.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            ![
+                "user",
+                "admin",
+                "super_admin"
+            ].includes(role)
+        ) {
+
+            return;
+
+        }
+
+
+        button.disabled =
+            true;
+
+
+        const {
+            error
+        } =
+            await adminDB
+                .from("profiles")
+                .update({
+                    role: role
+                })
+                .eq(
+                    "id",
+                    userId
+                );
+
+
+        button.disabled =
+            false;
+
+
+        if (error) {
+
+            showToast(
+                "Не вдалося змінити роль: " +
+                error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        showToast(
+            "Роль учасника змінено. ✅",
+            "success"
+        );
+
+
+        await loadParticipants();
+
+    }
+
+
+    /* ==========================================
+       ESCAPE HTML
+    ========================================== */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+
+    }
+
+
+    /* ==========================================
+       ПОШУК
+    ========================================== */
+
+    document
+        .getElementById("book-search")
+        .addEventListener(
+            "input",
+            renderBooks
+        );
+
+
+    /* ==========================================
+       ДОДАТИ ЖАНР
+    ========================================== */
+
+    document
+        .getElementById(
+            "add-genre-button"
+        )
+        .addEventListener(
+            "click",
+            addGenre
+        );
+
 
     document
         .getElementById(
@@ -8,7 +2029,8 @@
             function(event) {
 
                 if (
-                    event.key === "Enter"
+                    event.key ===
+                    "Enter"
                 ) {
 
                     event.preventDefault();
@@ -30,7 +2052,8 @@
             function(event) {
 
                 if (
-                    event.key === "Enter"
+                    event.key ===
+                    "Enter"
                 ) {
 
                     event.preventDefault();
@@ -44,7 +2067,7 @@
 
 
     /* ==========================================
-       START ADMIN
+       ЗАПУСК
     ========================================== */
 
     async function startAdmin() {
@@ -60,18 +2083,11 @@
             }
 
 
-            await loadBooks();
-
             await loadGenres();
 
-            // Завантажуємо учасників для admin та super_admin.
+            await loadBooks();
+
             await loadParticipants();
-
-
-            document.getElementById(
-                "admin-loading"
-            ).style.display =
-                "none";
 
         }
 
@@ -83,29 +2099,31 @@
             );
 
 
-            document.getElementById(
-                "admin-loading"
-            ).innerHTML = `
+            document.body.innerHTML = `
 
-                <h2>❌ Не вдалося завантажити адмінку</h2>
+                <main style="
+                    max-width:700px;
+                    margin:80px auto;
+                    padding:20px;
+                    text-align:center;
+                    font-family:Arial,sans-serif;
+                ">
 
-                <p>
-                    ${escapeHTML(
-                        error.message
-                    )}
-                </p>
+                    <h1>❌ Помилка адмінки</h1>
 
-                <br>
+                    <p>
+                        ${escapeHTML(
+                            error.message
+                        )}
+                    </p>
 
-                <a
-                    href="index.html"
-                    style="
-                        color:white;
-                        font-weight:bold;
-                    "
-                >
-                    🏠 На головну
-                </a>
+                    <br>
+
+                    <a href="index.html">
+                        🏠 Повернутися на головну
+                    </a>
+
+                </main>
 
             `;
 
@@ -122,5 +2140,5 @@
 </script>
 
 </body>
-
 </html>
+```
