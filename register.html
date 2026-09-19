@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Реєстрація — BookWorld</title>
+
+    <!-- Основні стилі BookWorld -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Бібліотека Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Підключення нашого Supabase -->
+    <script src="supabase.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <!-- Логотип -->
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <!-- Навігація -->
+    <nav>
+        <a href="index.html">
+            Головна
+        </a>
+
+        <a href="login.html">
+            Увійти
+        </a>
+    </nav>
+
+</header>
+
+
+<!-- ==========================================
+     СТОРІНКА РЕЄСТРАЦІЇ
+========================================== -->
+
+<main class="auth-page">
+
+    <div class="auth-card">
+
+        <h1>
+            Створити акаунт
+        </h1>
+
+        <p class="auth-subtitle">
+            Зареєструйся, щоб мати власний кошик
+        </p>
+
+
+        <!-- ==========================================
+             ФОРМА РЕЄСТРАЦІЇ
+        ========================================== -->
+
+        <form id="register-form">
+
+            <!-- Ім'я користувача -->
+            <label for="username">
+                Ім'я користувача
+            </label>
+
+            <input
+                type="text"
+                id="username"
+                placeholder="Наприклад: Макс"
+                autocomplete="username"
+                maxlength="50"
+                required
+            >
+
+
+            <!-- Електронна пошта -->
+            <label for="email">
+                Електронна пошта
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="example@gmail.com"
+                autocomplete="email"
+                required
+            >
+
+
+            <!-- Пароль -->
+            <label for="password">
+                Пароль
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Мінімум 6 символів"
+                autocomplete="new-password"
+                minlength="6"
+                required
+            >
+
+
+            <!-- Кнопка реєстрації -->
+            <button
+                type="submit"
+                class="auth-button"
+                id="register-button">
+                Зареєструватися
+            </button>
+
+        </form>
+
+
+        <!-- ==========================================
+             ПОВІДОМЛЕННЯ
+        ========================================== -->
+
+        <p
+            id="register-message"
+            class="auth-message">
+        </p>
+
+
+        <!-- ==========================================
+             ПЕРЕХІД ДО ВХОДУ
+        ========================================== -->
+
+        <p class="auth-bottom">
+
+            Уже маєш акаунт?
+
+            <a href="login.html">
+                Увійти
+            </a>
+
+        </p>
+
+    </div>
+
+</main>
+
+
+<script>
+
+// ==========================================
+// ОТРИМУЄМО ЕЛЕМЕНТИ СТОРІНКИ
+// ==========================================
+
+const registerForm =
+    document.getElementById(
+        "register-form"
+    );
+
+const registerMessage =
+    document.getElementById(
+        "register-message"
+    );
+
+const registerButton =
+    document.getElementById(
+        "register-button"
+    );
+
+
+// ==========================================
+// РЕЄСТРАЦІЯ
+// ==========================================
+
+registerForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        // Не перезавантажуємо сторінку
+        event.preventDefault();
+
+
+        // ==========================================
+        // ОТРИМУЄМО ДАНІ
+        // ==========================================
+
+        const username =
+            document
+                .getElementById("username")
+                .value
+                .trim();
+
+
+        const email =
+            document
+                .getElementById("email")
+                .value
+                .trim();
+
+
+        const password =
+            document
+                .getElementById("password")
+                .value;
+
+
+        // ==========================================
+        // ПЕРЕВІРКА ІМЕНІ
+        // ==========================================
+
+        if (!username) {
+
+            registerMessage.textContent =
+                "❌ Введи ім'я користувача.";
+
+            registerMessage.style.color =
+                "red";
+
+            return;
+        }
+
+
+        // ==========================================
+        // ПЕРЕВІРКА ПАРОЛЯ
+        // ==========================================
+
+        if (password.length < 6) {
+
+            registerMessage.textContent =
+                "❌ Пароль має містити щонайменше 6 символів.";
+
+            registerMessage.style.color =
+                "red";
+
+            return;
+        }
+
+
+        // ==========================================
+        // ПЕРЕВІРКА SUPABASE
+        // ==========================================
+
+        const registerDB =
+            window.BookWorldSupabase;
+
+
+        if (!registerDB) {
+
+            registerMessage.textContent =
+                "❌ Не вдалося підключитися до сервера.";
+
+            registerMessage.style.color =
+                "red";
+
+            return;
+        }
+
+
+        // ==========================================
+        // БЛОКУЄМО КНОПКУ
+        // ==========================================
+
+        registerButton.disabled =
+            true;
+
+        registerButton.textContent =
+            "Створення акаунта...";
+
+
+        registerMessage.textContent =
+            "Створюємо акаунт...";
+
+        registerMessage.style.color =
+            "";
+
+
+        try {
+
+            // ==========================================
+            // СТВОРЮЄМО АКАУНТ
+            // ==========================================
+
+            const {
+                data,
+                error
+            } =
+                await registerDB.auth.signUp({
+
+                    email: email,
+
+                    password: password,
+
+                    options: {
+
+                        data: {
+                            username: username
+                        }
+
+                    }
+
+                });
+
+
+            // ==========================================
+            // ОБРОБКА ПОМИЛКИ
+            // ==========================================
+
+            if (error) {
+
+                console.error(
+                    "Помилка реєстрації:",
+                    error
+                );
+
+
+                registerMessage.textContent =
+                    "❌ " + error.message;
+
+                registerMessage.style.color =
+                    "red";
+
+
+                registerButton.disabled =
+                    false;
+
+                registerButton.textContent =
+                    "Зареєструватися";
+
+                return;
+            }
+
+
+            // ==========================================
+            // УСПІШНА РЕЄСТРАЦІЯ
+            // ==========================================
+
+            if (data && data.user) {
+
+                registerMessage.textContent =
+                    "✅ Акаунт створено! Перевір свою електронну пошту.";
+
+                registerMessage.style.color =
+                    "green";
+
+
+                // Очищаємо форму
+                registerForm.reset();
+
+
+                // Повертаємо кнопку
+                registerButton.disabled =
+                    false;
+
+                registerButton.textContent =
+                    "Зареєструватися";
+
+            }
+
+        }
+
+        catch (error) {
+
+            // ==========================================
+            // НЕОЧІКУВАНА ПОМИЛКА
+            // ==========================================
+
+            console.error(
+                "Помилка:",
+                error
+            );
+
+
+            registerMessage.textContent =
+                "❌ Сталася помилка. Спробуй ще раз.";
+
+            registerMessage.style.color =
+                "red";
+
+
+            registerButton.disabled =
+                false;
+
+            registerButton.textContent =
+                "Зареєструватися";
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

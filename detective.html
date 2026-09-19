@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Детектив — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button" id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>🔎 Детективи</h1>
+
+    <p class="description">
+        Таємниці, розслідування та загадкові злочини
+    </p>
+
+    <div class="books-grid" id="books"></div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+     ========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+
+<!-- ==========================================
+     ОСНОВНИЙ СКРИПТ BOOKWORLD
+     ========================================== -->
+
+<script src="script.js"></script>
+
+
+<script>
+
+    // ==========================================
+    // ОТРИМАННЯ ДЕТЕКТИВНИХ КНИГ
+    // ==========================================
+
+    async function getDetectiveBooks() {
+
+        try {
+
+            const dbDetective =
+                window.BookWorldSupabase;
+
+
+            // Знаходимо жанр за кодом
+            const { data: genre, error: genreError } =
+                await dbDetective
+                    .from("genres")
+                    .select("id")
+                    .eq("code", "detective")
+                    .single();
+
+
+            if (genreError) {
+
+                console.error(
+                    "Помилка отримання жанру:",
+                    genreError
+                );
+
+                return [];
+
+            }
+
+
+            // Отримуємо книги цього жанру
+            const { data: books, error: booksError } =
+                await dbDetective
+                    .from("books")
+                    .select("*")
+                    .eq("genre_id", genre.id)
+                    .eq("is_deleted", false)
+                    .order("created_at", {
+                        ascending: true
+                    });
+
+
+            if (booksError) {
+
+                console.error(
+                    "Помилка отримання книг:",
+                    booksError
+                );
+
+                return [];
+
+            }
+
+
+            return books || [];
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Помилка Supabase:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // БЕЗПЕЧНИЙ ВИВІД ТЕКСТУ
+    // ==========================================
+
+    function escapeDetectiveHTML(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // ==========================================
+    // СТВОРЕННЯ КАРТКИ КНИГИ
+    // ==========================================
+
+    function createDetectiveCard(
+        book,
+        quantity
+    ) {
+
+        const bookId =
+            book.book_code;
+
+
+        // ==========================================
+        // ОБКЛАДИНКА
+        // ==========================================
+
+        let cover =
+            book.image_url || "📖";
+
+
+        if (
+            typeof cover === "string" &&
+            (
+                cover.startsWith("http://") ||
+                cover.startsWith("https://")
+            )
+        ) {
+
+            cover = `
+                <img
+                    src="${escapeDetectiveHTML(cover)}"
+                    alt="${escapeDetectiveHTML(book.title || "Обкладинка книги")}"
+                >
+            `;
+
+        }
+
+
+        // ==========================================
+        // КАРТКА КНИГИ
+        // ==========================================
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "book-card";
+
+
+        card.dataset.bookId =
+            bookId;
+
+
+        card.innerHTML = `
+
+            <div class="book-cover">
+                ${cover}
+            </div>
+
+            <h2>
+                ${escapeDetectiveHTML(book.title || "Без назви")}
+            </h2>
+
+            <p>
+                ${escapeDetectiveHTML(book.author || "Автор невідомий")}
+            </p>
+
+            ${
+                book.price != null
+                    ? `
+                        <p class="book-price">
+                            ${book.price} грн
+                        </p>
+                    `
+                    : ""
+            }
+
+            <button
+                class="add-to-cart"
+                type="button"
+            >
+                🛒 Додати до кошика
+                ${quantity > 0 ? `(${quantity})` : ""}
+            </button>
+
+            ${
+                quantity > 0
+                    ? `
+                        <button
+                            class="remove-from-cart"
+                            type="button"
+                        >
+                            ➖ Прибрати одну
+                        </button>
+                    `
+                    : ""
+            }
+
+        `;
+
+
+        // ==========================================
+        // КНОПКА ДОДАВАННЯ
+        // ==========================================
+
+        const addButton =
+            card.querySelector(".add-to-cart");
+
+
+        addButton.addEventListener(
+            "click",
+            async function (event) {
+
+                event.stopPropagation();
+
+                await addDetectiveBook(
+                    bookId,
+                    card
+                );
+
+            }
+        );
+
+
+        // ==========================================
+        // КНОПКА ВИДАЛЕННЯ
+        // ==========================================
+
+        const removeButton =
+            card.querySelector(".remove-from-cart");
+
+
+        if (removeButton) {
+
+            removeButton.addEventListener(
+                "click",
+                async function (event) {
+
+                    event.stopPropagation();
+
+                    await removeDetectiveBook(
+                        bookId,
+                        card
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ==========================================
+        // ПЕРЕХІД НА СТОРІНКУ КНИГИ
+        // ==========================================
+
+        card.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "book.html?id=" +
+                    encodeURIComponent(bookId);
+
+            }
+        );
+
+
+        return card;
+
+    }
+
+
+    // ==========================================
+    // ПОЧАТКОВЕ ВІДОБРАЖЕННЯ КНИГ
+    // ==========================================
+
+    async function renderDetectiveBooks() {
+
+        const container =
+            document.getElementById("books");
+
+
+        container.innerHTML =
+            "<p>📚 Завантаження книг...</p>";
+
+
+        const books =
+            await getDetectiveBooks();
+
+
+        // Отримуємо кошик
+        const cart =
+            await BookWorld.getCart();
+
+
+        container.innerHTML = "";
+
+
+        // Якщо книг немає
+        if (books.length === 0) {
+
+            container.innerHTML =
+                "<p>У цьому жанрі поки немає книг.</p>";
+
+            BookWorld.updateCartLinks();
+
+            return;
+
+        }
+
+
+        // Створюємо картки
+        books.forEach(function (book) {
+
+            const quantity =
+                cart[book.book_code] || 0;
+
+
+            const card =
+                createDetectiveCard(
+                    book,
+                    quantity
+                );
+
+
+            container.appendChild(card);
+
+        });
+
+
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ОНОВЛЕННЯ ТІЛЬКИ ОДНІЄЇ КАРТКИ
+    // ==========================================
+
+    async function updateDetectiveCard(
+        id,
+        oldCard
+    ) {
+
+        const dbDetective =
+            window.BookWorldSupabase;
+
+
+        // Отримуємо актуальну книгу
+        const { data: book, error } =
+            await dbDetective
+                .from("books")
+                .select("*")
+                .eq("book_code", id)
+                .eq("is_deleted", false)
+                .single();
+
+
+        if (error || !book) {
+
+            console.error(
+                "Не вдалося оновити картку:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        // Отримуємо актуальний кошик
+        const cart =
+            await BookWorld.getCart();
+
+
+        const quantity =
+            cart[id] || 0;
+
+
+        // Створюємо оновлену картку
+        const newCard =
+            createDetectiveCard(
+                book,
+                quantity
+            );
+
+
+        // Замінюємо тільки цю картку
+        oldCard.replaceWith(newCard);
+
+
+        // Оновлюємо посилання на кошик
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ДОДАТИ ДО КОШИКА
+    // ==========================================
+
+    async function addDetectiveBook(
+        id,
+        card
+    ) {
+
+        await BookWorld.addToCart(id);
+
+
+        // Оновлюємо тільки одну картку
+        await updateDetectiveCard(
+            id,
+            card
+        );
+
+    }
+
+
+    // ==========================================
+    // ПРИБРАТИ ОДНУ КНИГУ
+    // ==========================================
+
+    async function removeDetectiveBook(
+        id,
+        card
+    ) {
+
+        await BookWorld.removeFromCart(id);
+
+
+        // Оновлюємо тільки одну картку
+        await updateDetectiveCard(
+            id,
+            card
+        );
+
+    }
+
+
+    // ==========================================
+    // ЗАПУСК
+    // ==========================================
+
+    renderDetectiveBooks();
+
+</script>
+
+</body>
+</html>

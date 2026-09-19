@@ -1,0 +1,1715 @@
+/* =========================================================
+   BOOKWORLD — ОСНОВНИЙ СТИЛЬ САЙТУ
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+
+    font-family: Arial, sans-serif;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f8f5fc 0%,
+            #f5f3ef 45%,
+            #f8f5fc 100%
+        );
+
+    color: #252525;
+
+    overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header {
+    width: 100%;
+
+    background:
+        linear-gradient(
+            135deg,
+            #6a11cb,
+            #e83e8c
+        );
+
+    color: white;
+
+    padding: 18px 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+
+    box-shadow:
+        0 4px 18px rgba(106, 17, 203, 0.25);
+
+    position: relative;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+
+    white-space: nowrap;
+
+    max-width: 100%;
+}
+
+.header a {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.header a:hover {
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.navigation {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    flex-wrap: wrap;
+
+    min-width: 0;
+    max-width: 100%;
+}
+
+.navigation a {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 9px 13px;
+
+    border-radius: 20px;
+
+    background: white;
+    color: #6a11cb;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.08);
+
+    min-width: 0;
+
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+
+    text-align: center;
+}
+
+.navigation a:hover {
+    background: #fff8ff;
+
+    box-shadow:
+        0 5px 14px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =========================================================
+   CART BUTTON
+   ========================================================= */
+
+.cart-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 20px;
+
+    padding: 10px 16px;
+
+    background: white;
+    color: #6a11cb;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    margin-left: 5px;
+
+    max-width: 100%;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.cart-button:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 15px rgba(0, 0, 0, 0.18);
+}
+
+
+/* =========================================================
+   MAIN
+   ========================================================= */
+
+main {
+    width: 100%;
+    max-width: 1150px;
+
+    margin: 30px auto;
+
+    padding: 0 20px;
+
+    min-width: 0;
+}
+
+h1 {
+    text-align: center;
+
+    margin-top: 0;
+    margin-bottom: 10px;
+
+    color: #292929;
+
+    overflow-wrap: anywhere;
+}
+
+h2,
+h3 {
+    color: #292929;
+
+    overflow-wrap: anywhere;
+}
+
+.description {
+    text-align: center;
+
+    color: #666;
+
+    margin-bottom: 30px;
+
+    line-height: 1.6;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a {
+    color: #6a11cb;
+}
+
+a:hover {
+    color: #e83e8c;
+}
+
+
+/* =========================================================
+   GENRES
+   ========================================================= */
+
+.genres {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+
+    width: 100%;
+}
+
+.genre-card {
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.08);
+
+    text-align: center;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+
+    min-width: 0;
+
+    width: 100%;
+
+    overflow: hidden;
+}
+
+.genre-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 12px 30px rgba(106, 17, 203, 0.16);
+}
+
+.genre-button {
+    display: block;
+
+    width: 100%;
+
+    text-decoration: none;
+
+    color: #6a11cb;
+
+    font-weight: bold;
+    font-size: 18px;
+
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   BOOKS
+   ========================================================= */
+
+.books-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 20px;
+
+    align-items: stretch;
+
+    width: 100%;
+
+    min-width: 0;
+}
+
+.book-card {
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 15px;
+
+    box-shadow:
+        0 5px 18px rgba(0, 0, 0, 0.08);
+
+    overflow: hidden;
+
+    min-width: 0;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 12px 30px rgba(106, 17, 203, 0.16);
+}
+
+
+/* =========================================================
+   BOOK COVER
+   ========================================================= */
+
+.book-cover {
+    width: 100%;
+
+    height: 350px;
+
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eee5ff,
+            #ffe7f2
+        );
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 15px;
+
+    flex-shrink: 0;
+
+    min-width: 0;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    display: block;
+
+    transition:
+        transform 0.3s ease;
+
+    max-width: 100%;
+}
+
+.book-card:hover .book-cover img {
+    transform: scale(1.02);
+}
+
+
+/* =========================================================
+   BOOK TEXT
+   ========================================================= */
+
+.book-card h2 {
+    margin: 10px 0 7px;
+
+    font-size: 20px;
+
+    line-height: 1.35;
+
+    color: #292929;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    white-space: normal !important;
+
+    overflow-wrap: anywhere !important;
+
+    word-break: break-word !important;
+}
+
+.book-card p {
+    margin: 6px 0;
+
+    color: #666;
+
+    line-height: 1.45;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    white-space: normal !important;
+
+    overflow-wrap: anywhere !important;
+
+    word-break: break-word !important;
+}
+
+.book-card h2 *,
+.book-card p * {
+    white-space: normal !important;
+
+    overflow-wrap: anywhere !important;
+
+    word-break: break-all !important;
+}
+
+
+/* =========================================================
+   BOOK INFO
+   ========================================================= */
+
+.book-info {
+    min-width: 0;
+
+    width: 100%;
+
+    max-width: 100%;
+}
+
+.book-info * {
+    max-width: 100%;
+}
+
+.book-author,
+.book-description,
+.book-details {
+    overflow-wrap: anywhere;
+
+    word-break: break-word;
+
+    white-space: normal;
+}
+
+
+/* =========================================================
+   PRICE
+   ========================================================= */
+
+.price {
+    color: #6a11cb;
+
+    font-size: 20px;
+
+    font-weight: bold;
+
+    margin-top: 10px;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   BOOK BUTTONS
+   ========================================================= */
+
+.add-to-cart,
+.remove-from-cart {
+    width: 100%;
+    max-width: 100%;
+
+    border: none;
+
+    border-radius: 11px;
+
+    padding: 12px;
+
+    margin-top: 8px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    font-size: 15px;
+
+    overflow-wrap: anywhere;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.add-to-cart {
+    background:
+        linear-gradient(
+            135deg,
+            #6a11cb,
+            #e83e8c
+        );
+
+    color: white;
+
+    box-shadow:
+        0 4px 12px rgba(106, 17, 203, 0.18);
+}
+
+.add-to-cart:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 7px 18px rgba(106, 17, 203, 0.28);
+}
+
+.remove-from-cart {
+    background: #ffe5e5;
+
+    color: #b42318;
+}
+
+.remove-from-cart:hover {
+    background: #ffd4d4;
+
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   GENERAL BUTTONS
+   ========================================================= */
+
+button {
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+button:hover {
+    opacity: 0.95;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+input,
+select,
+textarea {
+    max-width: 100%;
+
+    border: 1px solid #d7d7d7;
+
+    border-radius: 10px;
+
+    padding: 11px 13px;
+
+    background: white;
+
+    color: #252525;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #6a11cb;
+
+    box-shadow:
+        0 0 0 3px rgba(106, 17, 203, 0.10);
+}
+
+
+/* =========================================================
+   EMPTY CART
+   ========================================================= */
+
+.empty-cart {
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 35px;
+
+    text-align: center;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.08);
+
+    max-width: 700px;
+
+    width: 100%;
+
+    margin: 30px auto;
+
+    overflow: hidden;
+}
+
+.empty-cart h2 {
+    margin-top: 0;
+}
+
+.empty-cart p {
+    color: #666;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   CART
+   ========================================================= */
+
+#cart-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+
+    width: 100%;
+
+    min-width: 0;
+}
+
+.cart-item {
+    background: white;
+
+    border-radius: 16px;
+
+    padding: 15px;
+
+    box-shadow:
+        0 5px 18px rgba(0, 0, 0, 0.08);
+
+    min-width: 0;
+
+    width: 100%;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   BOOK DETAIL
+   ========================================================= */
+
+.book-detail {
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 7px 25px rgba(0, 0, 0, 0.09);
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(250px, 350px)
+        minmax(0, 1fr);
+
+    gap: 30px;
+
+    min-width: 0;
+
+    width: 100%;
+
+    overflow: hidden;
+}
+
+.book-detail img {
+    max-width: 100%;
+}
+
+.book-detail h1,
+.book-detail h2,
+.book-detail p {
+    overflow-wrap: anywhere;
+
+    word-break: break-word;
+
+    white-space: normal;
+}
+
+.book-detail-info {
+    min-width: 0;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer {
+    text-align: center;
+
+    padding: 35px 15px;
+
+    color: #777;
+
+    margin-top: 30px;
+
+    width: 100%;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.bw-toast {
+    position: fixed;
+
+    top: 25px;
+    right: 25px;
+
+    width: min(
+        400px,
+        calc(100vw - 30px)
+    );
+
+    min-width: 0;
+
+    padding: 15px 18px;
+
+    border-radius: 14px;
+
+    background: white;
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.20);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    z-index: 99999;
+
+    animation:
+        toastIn 0.3s ease;
+
+    color: #292929;
+
+    overflow-wrap: anywhere;
+}
+
+.bw-toast.success {
+    border-left: 5px solid #28a745;
+}
+
+.bw-toast.error {
+    border-left: 5px solid #dc3545;
+}
+
+.bw-toast.warning {
+    border-left: 5px solid #ffc107;
+}
+
+.bw-toast.info {
+    border-left: 5px solid #6a11cb;
+}
+
+.bw-toast.hide {
+    animation:
+        toastOut 0.3s ease forwards;
+}
+
+.bw-toast-icon {
+    font-size: 22px;
+
+    flex-shrink: 0;
+}
+
+.bw-toast-content {
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+.bw-popup-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        rgba(20, 10, 30, 0.55);
+
+    backdrop-filter: blur(3px);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 100000;
+
+    padding: 20px;
+}
+
+.bw-popup {
+    width: 100%;
+
+    max-width: 440px;
+
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 28px;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.28);
+
+    animation:
+        popupIn 0.25s ease;
+
+    overflow-wrap: anywhere;
+}
+
+.bw-popup-icon {
+    font-size: 42px;
+
+    margin-bottom: 10px;
+}
+
+.bw-popup h2 {
+    margin: 5px 0 10px;
+
+    color: #292929;
+
+    overflow-wrap: anywhere;
+}
+
+.bw-popup p {
+    color: #666;
+
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+.bw-popup-input {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+    outline: none;
+
+    font-size: 15px;
+}
+
+.bw-popup-input:focus {
+    border-color: #6a11cb;
+
+    box-shadow:
+        0 0 0 3px rgba(106, 17, 203, 0.10);
+}
+
+.bw-popup-buttons {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+
+    width: 100%;
+}
+
+.bw-btn {
+    flex: 1;
+
+    min-width: 0;
+
+    max-width: 100%;
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 12px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    overflow-wrap: anywhere;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.bw-btn:hover {
+    transform: translateY(-2px);
+}
+
+.bw-btn.cancel {
+    background: #eee;
+
+    color: #444;
+}
+
+.bw-btn.confirm {
+    background:
+        linear-gradient(
+            135deg,
+            #6a11cb,
+            #e83e8c
+        );
+
+    color: white;
+
+    box-shadow:
+        0 4px 12px rgba(106, 17, 203, 0.20);
+}
+
+
+/* =========================================================
+   AUTH
+   ========================================================= */
+
+.auth-page {
+    min-height:
+        calc(100vh - 100px);
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 40px 20px;
+
+    width: 100%;
+}
+
+.auth-card {
+    width: 100%;
+
+    max-width: 430px;
+
+    background: white;
+
+    padding: 35px;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.auth-card h1 {
+    text-align: center;
+
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    text-align: center;
+
+    color: #777;
+
+    margin-bottom: 25px;
+
+    line-height: 1.5;
+}
+
+.auth-card label {
+    display: block;
+
+    margin-top: 15px;
+    margin-bottom: 7px;
+
+    font-weight: bold;
+}
+
+.auth-card input {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 13px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+}
+
+.auth-card input:focus {
+    outline: none;
+
+    border-color: #6a11cb;
+
+    box-shadow:
+        0 0 0 3px rgba(106, 17, 203, 0.10);
+}
+
+.auth-button {
+    width: 100%;
+
+    margin-top: 25px;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #6a11cb,
+            #e83e8c
+        );
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.auth-button:hover {
+    opacity: 0.9;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 6px 18px rgba(106, 17, 203, 0.25);
+}
+
+.auth-message {
+    text-align: center;
+
+    margin-top: 18px;
+
+    font-weight: bold;
+
+    overflow-wrap: anywhere;
+}
+
+.auth-bottom {
+    text-align: center;
+
+    margin-top: 25px;
+}
+
+.auth-bottom a {
+    color: #6a11cb;
+
+    font-weight: bold;
+
+    text-decoration: none;
+}
+
+.auth-bottom a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   GENERAL CARDS
+   ========================================================= */
+
+.card,
+.panel,
+.section,
+.admin-section {
+    min-width: 0;
+
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   PROTECTION FROM OVERFLOW
+   ========================================================= */
+
+.book-card *,
+.genre-card *,
+.cart-item *,
+.book-detail *,
+.bw-popup *,
+.bw-toast * {
+    max-width: 100%;
+
+    overflow-wrap: anywhere;
+
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes toastIn {
+
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+}
+
+@keyframes toastOut {
+
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+}
+
+@keyframes popupIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            scale(0.9)
+            translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .header {
+        padding: 16px 20px;
+    }
+
+    .books-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .genres {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .book-detail {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   PHONE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    body {
+        width: 100%;
+        max-width: 100%;
+    }
+
+
+    /* -----------------------------
+       МОБІЛЬНА ШАПКА
+       ----------------------------- */
+
+    .header {
+        width: 100%;
+
+        padding: 11px 10px;
+
+        display: grid;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+
+        grid-template-areas:
+            "logo logo"
+            "navigation cart";
+
+        align-items: center;
+
+        gap: 9px;
+
+        overflow: hidden;
+    }
+
+    .logo {
+        grid-area: logo;
+
+        width: 100%;
+
+        text-align: center;
+
+        font-size: 24px;
+
+        line-height: 1.2;
+
+        white-space: nowrap;
+    }
+
+
+    /* -----------------------------
+       КНОПКИ В ОДИН РЯД
+       ----------------------------- */
+
+    .navigation {
+        grid-area: navigation;
+
+        width: 100%;
+
+        min-width: 0;
+
+        display: flex;
+
+        flex-wrap: nowrap;
+
+        justify-content: flex-start;
+
+        align-items: center;
+
+        gap: 6px;
+
+        overflow-x: auto;
+
+        overflow-y: hidden;
+
+        padding: 2px 1px 5px;
+
+        scrollbar-width: none;
+
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .navigation::-webkit-scrollbar {
+        display: none;
+    }
+
+    .navigation a {
+        flex: 0 0 auto;
+
+        width: auto;
+
+        min-width: max-content;
+
+        max-width: none;
+
+        padding: 8px 11px;
+
+        font-size: 12px;
+
+        line-height: 1.2;
+
+        border-radius: 18px;
+
+        white-space: nowrap;
+
+        overflow: visible;
+    }
+
+
+    /* -----------------------------
+       КОШИК У ТОМУ Ж РЯДКУ
+       ----------------------------- */
+
+    .cart-button {
+        grid-area: cart;
+
+        width: auto;
+
+        min-width: max-content;
+
+        margin-left: 0;
+
+        padding: 8px 11px;
+
+        font-size: 12px;
+
+        white-space: nowrap;
+
+        border-radius: 18px;
+    }
+
+
+    /* -----------------------------
+       ОСНОВНА ЧАСТИНА
+       ----------------------------- */
+
+    main {
+        width: 100%;
+
+        padding: 0 10px;
+
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-size: 25px;
+
+        line-height: 1.25;
+    }
+
+    .description {
+        font-size: 14px;
+
+        margin-bottom: 20px;
+    }
+
+
+    /* -----------------------------
+       ЖАНРИ
+       ----------------------------- */
+
+    .genres {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    .genre-card {
+        padding: 16px 8px;
+
+        border-radius: 14px;
+    }
+
+    .genre-button {
+        font-size: 15px;
+    }
+
+
+    /* -----------------------------
+       КНИГИ
+       ----------------------------- */
+
+    .books-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+    .book-card {
+        padding: 9px;
+
+        border-radius: 13px;
+    }
+
+    .book-cover {
+        height: 230px;
+
+        border-radius: 9px;
+
+        margin-bottom: 10px;
+    }
+
+    .book-card h2 {
+        font-size: 16px;
+
+        line-height: 1.3;
+
+        margin: 7px 0 5px;
+    }
+
+    .book-card p {
+        font-size: 13px;
+
+        line-height: 1.35;
+
+        margin: 5px 0;
+    }
+
+    .price {
+        font-size: 17px;
+    }
+
+    .add-to-cart,
+    .remove-from-cart {
+        padding: 10px 7px;
+
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------
+       КОШИК
+       ----------------------------- */
+
+    #cart-grid {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+    }
+
+    .cart-item {
+        padding: 12px;
+    }
+
+
+    /* -----------------------------
+       ДЕТАЛЬНА КНИГА
+       ----------------------------- */
+
+    .book-detail {
+        padding: 15px;
+
+        border-radius: 16px;
+
+        gap: 18px;
+    }
+
+    .book-detail h1 {
+        font-size: 25px;
+    }
+
+    .book-detail img {
+        width: 100%;
+
+        max-height: 500px;
+
+        object-fit: contain;
+    }
+
+
+    /* -----------------------------
+       ПОВІДОМЛЕННЯ
+       ----------------------------- */
+
+    .bw-toast {
+        top: 12px;
+
+        left: 10px;
+        right: 10px;
+
+        width: auto;
+    }
+
+
+    /* -----------------------------
+       POPUP
+       ----------------------------- */
+
+    .bw-popup-overlay {
+        padding: 10px;
+    }
+
+    .bw-popup {
+        padding: 20px;
+
+        border-radius: 16px;
+    }
+
+    .bw-popup-buttons {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .bw-btn {
+        width: 100%;
+    }
+
+
+    /* -----------------------------
+       АВТОРИЗАЦІЯ
+       ----------------------------- */
+
+    .auth-page {
+        padding: 25px 12px;
+    }
+
+    .auth-card {
+        padding: 25px 18px;
+
+        border-radius: 16px;
+    }
+
+}
+
+
+/* =========================================================
+   ДУЖЕ МАЛЕНЬКІ ТЕЛЕФОНИ
+   ========================================================= */
+
+@media (max-width: 430px) {
+
+    .header {
+        padding: 9px 7px;
+
+        gap: 7px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .navigation {
+        gap: 5px;
+
+        padding-bottom: 4px;
+    }
+
+    .navigation a {
+        font-size: 11px;
+
+        padding: 7px 9px;
+
+        border-radius: 16px;
+    }
+
+    .cart-button {
+        font-size: 11px;
+
+        padding: 7px 9px;
+
+        border-radius: 16px;
+    }
+
+    main {
+        padding: 0 8px;
+    }
+
+    .books-grid {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+    }
+
+    .genres {
+        grid-template-columns: 1fr;
+
+        gap: 10px;
+    }
+
+    .book-cover {
+        height: 330px;
+    }
+
+    .book-card h2 {
+        font-size: 18px;
+    }
+
+    .book-card p {
+        font-size: 14px;
+    }
+
+    .add-to-cart,
+    .remove-from-cart {
+        font-size: 14px;
+
+        padding: 11px;
+    }
+
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+    width: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f0edf3;
+}
+
+::-webkit-scrollbar-thumb {
+    background:
+        linear-gradient(
+            180deg,
+            #6a11cb,
+            #e83e8c
+        );
+
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background:
+        linear-gradient(
+            180deg,
+            #5a0fb0,
+            #d82d7b
+        );
+}

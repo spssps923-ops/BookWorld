@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Міграція — BookWorld</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f5f3ef;
+    color:#252525;
+}
+
+.container{
+    max-width:800px;
+    margin:50px auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:18px;
+    padding:30px;
+    box-shadow:0 5px 20px rgba(0,0,0,.1);
+}
+
+h1{
+    text-align:center;
+    color:#6a11cb;
+}
+
+.description{
+    color:#666;
+    line-height:1.6;
+}
+
+.migrate-button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#6a11cb,#e83e8c);
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:20px;
+}
+
+.migrate-button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.progress{
+    margin-top:25px;
+    padding:15px;
+    background:#f7f7f7;
+    border-radius:10px;
+    min-height:100px;
+    white-space:pre-wrap;
+    line-height:1.6;
+}
+
+.success{
+    color:#16803c;
+}
+
+.error{
+    color:#b42318;
+}
+
+.back{
+    display:block;
+    text-align:center;
+    margin-top:20px;
+    color:#6a11cb;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>📚 BookWorld — міграція</h1>
+
+<p class="description">
+
+Ця сторінка перенесе твої книги та жанри з localStorage
+до Supabase.
+
+<br><br>
+
+Буде перенесено стандартні книги, власні книги,
+редагування, видалені книги та власні жанри.
+
+<br><br>
+
+<strong>Запускати міграцію достатньо один раз.</strong>
+
+</p>
+
+<button
+id="migrate-button"
+class="migrate-button"
+onclick="startMigration()">
+
+🚀 Перенести всі дані в Supabase
+
+</button>
+
+<div
+id="progress"
+class="progress">
+
+Очікування запуску...
+
+</div>
+
+<a
+href="admin.html"
+class="back">
+
+← Повернутися до адмінки
+
+</a>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ==========================================
+   BOOKWORLD — МІГРАЦІЯ LOCALSTORAGE → SUPABASE
+========================================== */
+
+const supabase = window.BookWorldSupabase;
+
+
+/* ==========================================
+   СТАНДАРТНІ КНИГИ
+========================================== */
+
+const standardBooks = [
+
+{
+id:"f1",
+title:"Четверте крило",
+author:"Ребекка Яррос",
+genre:"fantasy",
+emoji:"🐉",
+description:"Історія про Вайолет, яка потрапляє до військового коледжу вершників драконів."
+},
+
+{
+id:"f2",
+title:"Ртуть",
+author:"Автор книги",
+genre:"fantasy",
+emoji:"⚔️",
+description:"Фентезійна історія з магією, небезпекою та незвичайними героями."
+},
+
+{
+id:"f3",
+title:"Володар перснів",
+author:"Дж. Р. Р. Толкін",
+genre:"fantasy",
+emoji:"🧙",
+description:"Епічна подорож Середзем'ям та боротьба за долю світу."
+},
+
+{
+id:"f4",
+title:"Гаррі Поттер",
+author:"Дж. К. Ролінґ",
+genre:"fantasy",
+emoji:"⚡",
+description:"Історія юного чарівника та його пригод у світі магії."
+},
+
+
+{
+id:"s1",
+title:"Дюна",
+author:"Френк Герберт",
+genre:"sci-fi",
+emoji:"🪐",
+description:"Фантастична історія про Арракіс, пустелю та боротьбу за владу."
+},
+
+{
+id:"s2",
+title:"1984",
+author:"Джордж Орвелл",
+genre:"sci-fi",
+emoji:"🤖",
+description:"Антиутопія про тотальний контроль суспільства."
+},
+
+{
+id:"s3",
+title:"Марсіянин",
+author:"Енді Вейр",
+genre:"sci-fi",
+emoji:"🚀",
+description:"Астронавт намагається вижити сам на Марсі."
+},
+
+{
+id:"s4",
+title:"Автостопом по галактиці",
+author:"Дуглас Адамс",
+genre:"sci-fi",
+emoji:"🌌",
+description:"Гумористична космічна пригода."
+},
+
+
+{
+id:"d1",
+title:"Вбивство у «Східному експресі»",
+author:"Аґата Крісті",
+genre:"detective",
+emoji:"🔎",
+description:"Пуаро розслідує загадкове вбивство у потязі."
+},
+
+{
+id:"d2",
+title:"Шерлок Холмс",
+author:"Артур Конан Дойл",
+genre:"detective",
+emoji:"🕵️",
+description:"Знамениті розслідування Шерлока Холмса."
+},
+
+{
+id:"d3",
+title:"Таємничий острів",
+author:"Жуль Верн",
+genre:"detective",
+emoji:"🗝️",
+description:"Таємниці та пригоди на загадковому острові."
+},
+
+{
+id:"d4",
+title:"Десять негренят",
+author:"Аґата Крісті",
+genre:"detective",
+emoji:"🩸",
+description:"Група людей опиняється на ізольованому острові."
+},
+
+
+{
+id:"r1",
+title:"Гордість і упередження",
+author:"Джейн Остін",
+genre:"romance",
+emoji:"❤️",
+description:"Класичний роман про кохання, характер та суспільні правила."
+},
+
+{
+id:"r2",
+title:"До зустрічі з тобою",
+author:"Джоджо Мойєс",
+genre:"romance",
+emoji:"🌹",
+description:"Емоційна історія про двох людей, які змінюють життя одне одного."
+},
+
+{
+id:"r3",
+title:"Щоденник пам'яті",
+author:"Ніколас Спаркс",
+genre:"romance",
+emoji:"💌",
+description:"Історія кохання, яку герої пам'ятають усе життя."
+},
+
+{
+id:"r4",
+title:"Маленькі жінки",
+author:"Луїза Мей Олкотт",
+genre:"romance",
+emoji:"🌸",
+description:"Історія життя чотирьох сестер."
+},
+
+
+{
+id:"h1",
+title:"Воно",
+author:"Стівен Кінг",
+genre:"horror",
+emoji:"👻",
+description:"Містична історія про таємниче зло."
+},
+
+{
+id:"h2",
+title:"Кладовище домашніх тварин",
+author:"Стівен Кінг",
+genre:"horror",
+emoji:"💀",
+description:"Похмура історія про таємниче кладовище."
+},
+
+{
+id:"h3",
+title:"Дракула",
+author:"Брем Стокер",
+genre:"horror",
+emoji:"🧛",
+description:"Класична історія про графа Дракулу."
+},
+
+{
+id:"h4",
+title:"Інтерв'ю з вампіром",
+author:"Енн Райс",
+genre:"horror",
+emoji:"🩸",
+description:"Історія вампіра та його життя крізь століття."
+},
+
+
+{
+id:"a1",
+title:"Острів скарбів",
+author:"Роберт Луїс Стівенсон",
+genre:"adventure",
+emoji:"🏝️",
+description:"Пригодницька історія про пошуки піратського скарбу."
+},
+
+{
+id:"a2",
+title:"20 000 льє під водою",
+author:"Жуль Верн",
+genre:"adventure",
+emoji:"🌊",
+description:"Подорож на загадковому підводному човні."
+},
+
+{
+id:"a3",
+title:"Навколо світу за 80 днів",
+author:"Жуль Верн",
+genre:"adventure",
+emoji:"🌍",
+description:"Неймовірна подорож навколо світу."
+},
+
+{
+id:"a4",
+title:"Загублений світ",
+author:"Артур Конан Дойл",
+genre:"adventure",
+emoji:"🗺️",
+description:"Експедиція відкриває невідомий світ."
+},
+
+
+{
+id:"hi1",
+title:"Три мушкетери",
+author:"Олександр Дюма",
+genre:"history",
+emoji:"⚔️",
+description:"Пригоди мушкетерів у Франції."
+},
+
+{
+id:"hi2",
+title:"Айвенго",
+author:"Вальтер Скотт",
+genre:"history",
+emoji:"🏰",
+description:"Історичний роман про лицарів та середньовічну Англію."
+},
+
+{
+id:"hi3",
+title:"Війна і мир",
+author:"Лев Толстой",
+genre:"history",
+emoji:"👑",
+description:"Великий роман про життя людей під час війни."
+},
+
+{
+id:"hi4",
+title:"Клеопатра",
+author:"Маргарет Джордж",
+genre:"history",
+emoji:"👸",
+description:"Історія життя легендарної цариці Єгипту."
+},
+
+
+{
+id:"c1",
+title:"Маленький принц",
+author:"Антуан де Сент-Екзюпері",
+genre:"classic",
+emoji:"🌟",
+description:"Філософська казка про дружбу, любов та життя."
+},
+
+{
+id:"c2",
+title:"Фауст",
+author:"Йоганн Вольфганг фон Ґете",
+genre:"classic",
+emoji:"📜",
+description:"Класична драматична поема про Фауста та Мефістофеля."
+},
+
+{
+id:"c3",
+title:"Мобі Дік",
+author:"Герман Мелвілл",
+genre:"classic",
+emoji:"🐋",
+description:"Епічна історія про полювання на білого кита."
+},
+
+{
+id:"c4",
+title:"Гамлет",
+author:"Вільям Шекспір",
+genre:"classic",
+emoji:"🎭",
+description:"Одна з найвідоміших трагедій Шекспіра."
+},
+
+
+{
+id:"t1",
+title:"Дівчина у потягу",
+author:"Пола Гокінз",
+genre:"thriller",
+emoji:"🚂",
+description:"Психологічний трилер про загадкове зникнення."
+},
+
+{
+id:"t2",
+title:"Мовчання ягнят",
+author:"Томас Харріс",
+genre:"thriller",
+emoji:"🤫",
+description:"Напружене розслідування складної справи."
+},
+
+{
+id:"t3",
+title:"Сніговик",
+author:"Ю Несбьо",
+genre:"thriller",
+emoji:"❄️",
+description:"Детективний трилер про загадкові злочини."
+},
+
+{
+id:"t4",
+title:"Острів проклятих",
+author:"Денніс Ліхейн",
+genre:"thriller",
+emoji:"🏝️",
+description:"Таємнича історія на ізольованому острові."
+}
+
+];
+
+
+/* ==========================================
+   СТАНДАРТНІ ЖАНРИ
+========================================== */
+
+const standardGenres = [
+
+{
+id:"fantasy",
+name:"Фентезі",
+emoji:"🐉"
+},
+
+{
+id:"sci-fi",
+name:"Фантастика",
+emoji:"🚀"
+},
+
+{
+id:"detective",
+name:"Детектив",
+emoji:"🔎"
+},
+
+{
+id:"romance",
+name:"Роман",
+emoji:"❤️"
+},
+
+{
+id:"horror",
+name:"Жахи",
+emoji:"👻"
+},
+
+{
+id:"adventure",
+name:"Пригоди",
+emoji:"🗺️"
+},
+
+{
+id:"history",
+name:"Історичні",
+emoji:"🏰"
+},
+
+{
+id:"classic",
+name:"Класика",
+emoji:"📜"
+},
+
+{
+id:"thriller",
+name:"Трилери",
+emoji:"🔥"
+}
+
+];
+
+
+/* ==========================================
+   ДОПОМІЖНІ ФУНКЦІЇ
+========================================== */
+
+function log(message){
+
+const progress =
+document.getElementById("progress");
+
+progress.textContent +=
+"\n" + message;
+
+progress.scrollTop =
+progress.scrollHeight;
+
+}
+
+
+function getLocalStorageJSON(key,fallback){
+
+try{
+
+const data =
+JSON.parse(
+localStorage.getItem(key) || ""
+);
+
+return data ?? fallback;
+
+}catch{
+
+return fallback;
+
+}
+
+}
+
+
+/* ==========================================
+   ПЕРЕВІРКА АДМІНА
+========================================== */
+
+async function checkAdmin(){
+
+const {
+data:{
+session
+}
+} =
+await supabase.auth.getSession();
+
+
+if(!session){
+
+window.location.href="index.html";
+
+return false;
+
+}
+
+
+const {
+data:profile,
+error
+} =
+await supabase
+.from("profiles")
+.select("role")
+.eq("id",session.user.id)
+.single();
+
+
+if(error || !profile || profile.role!=="admin"){
+
+window.location.href="index.html";
+
+return false;
+
+}
+
+
+return true;
+
+}
+
+
+/* ==========================================
+   ОТРИМАННЯ ВСІХ ЖАНРІВ
+========================================== */
+
+function getLocalGenres(){
+
+const customGenres =
+getLocalStorageJSON(
+"customGenres",
+[]
+);
+
+return [
+
+...standardGenres,
+
+...customGenres
+
+];
+
+}
+
+
+/* ==========================================
+   СИНХРОНІЗАЦІЯ ЖАНРІВ
+========================================== */
+
+async function migrateGenres(){
+
+log("🏷️ Перевіряю жанри...");
+
+
+const localGenres =
+getLocalGenres();
+
+
+const {
+data:existing,
+error
+} =
+await supabase
+.from("genres")
+.select("id,code,name");
+
+
+if(error){
+
+throw new Error(
+"Не вдалося отримати жанри: " +
+error.message
+);
+
+}
+
+
+const genreMap={};
+
+
+existing.forEach(genre=>{
+
+genreMap[genre.code]=genre.id;
+
+});
+
+
+for(const genre of localGenres){
+
+if(genreMap[genre.id]){
+
+continue;
+
+}
+
+
+const {
+data,
+error:insertError
+} =
+await supabase
+.from("genres")
+.insert({
+
+name:genre.name,
+
+code:genre.id
+
+})
+.select("id,code")
+.single();
+
+
+if(insertError){
+
+throw new Error(
+`Не вдалося створити жанр "${genre.name}": ${insertError.message}`
+);
+
+}
+
+
+genreMap[data.code]=data.id;
+
+log(
+`✅ Додано жанр: ${genre.emoji || "📚"} ${genre.name}`
+);
+
+}
+
+
+return genreMap;
+
+}
+
+
+/* ==========================================
+   ОТРИМАННЯ КНИГ
+========================================== */
+
+function getAllLocalBooks(){
+
+const edits =
+getLocalStorageJSON(
+"bookEdits",
+{}
+);
+
+
+const userBooks =
+getLocalStorageJSON(
+"myBooks",
+[]
+);
+
+
+const deleted =
+getLocalStorageJSON(
+"deletedStandardBooks",
+[]
+);
+
+
+const books=[];
+
+
+/*
+    Стандартні книги.
+    Навіть видалені додаємо до Supabase,
+    але ставимо is_deleted=true.
+*/
+
+standardBooks.forEach(book=>{
+
+const finalBook={
+
+...book,
+
+...(edits[book.id] || {})
+
+};
+
+
+books.push({
+
+...finalBook,
+
+id:book.id,
+
+is_deleted:
+deleted.includes(book.id)
+
+});
+
+});
+
+
+/*
+    Власні книги користувача
+*/
+
+userBooks.forEach(book=>{
+
+books.push({
+
+...book,
+
+is_deleted:false
+
+});
+
+});
+
+
+return books;
+
+}
+
+
+/* ==========================================
+   ПІДГОТОВКА КНИГИ
+========================================== */
+
+function prepareBook(book,genreMap){
+
+const genreId =
+genreMap[book.genre] || null;
+
+
+return {
+
+book_code:String(book.id),
+
+title:String(book.title || ""),
+
+author:String(book.author || ""),
+
+genre_id:genreId,
+
+description:String(book.description || ""),
+
+image_url:String(
+book.image ||
+book.image_url ||
+""
+),
+
+price:String(book.price || ""),
+
+year:String(book.year || ""),
+
+pages:String(book.pages || ""),
+
+language:String(book.language || ""),
+
+publisher:String(book.publisher || ""),
+
+isbn:String(book.isbn || ""),
+
+rating:String(book.rating || ""),
+
+series:String(book.series || ""),
+
+buy_link:String(
+book.buyLink ||
+book.buy_link ||
+""
+),
+
+is_deleted:Boolean(
+book.is_deleted
+),
+
+updated_at:new Date().toISOString()
+
+};
+
+}
+
+
+/* ==========================================
+   МІГРАЦІЯ КНИГ
+========================================== */
+
+async function migrateBooks(genreMap){
+
+const books =
+getAllLocalBooks();
+
+
+log(
+`📚 Знайдено книг для перенесення: ${books.length}`
+);
+
+
+let success=0;
+
+
+for(const book of books){
+
+const prepared =
+prepareBook(
+book,
+genreMap
+);
+
+
+const {
+error
+} =
+await supabase
+.from("books")
+.upsert(
+prepared,
+{
+onConflict:"book_code"
+}
+);
+
+
+if(error){
+
+throw new Error(
+`Книга "${book.title}" не перенесена: ${error.message}`
+);
+
+}
+
+
+success++;
+
+
+log(
+`✅ ${success}/${books.length} — ${book.title}`
+);
+
+}
+
+
+return success;
+
+}
+
+
+/* ==========================================
+   ЗАПУСК
+========================================== */
+
+async function startMigration(){
+
+const button =
+document.getElementById(
+"migrate-button"
+);
+
+
+button.disabled=true;
+
+document.getElementById(
+"progress"
+).textContent =
+"Починаю міграцію...";
+
+
+try{
+
+const isAdmin =
+await checkAdmin();
+
+
+if(!isAdmin){
+
+return;
+
+}
+
+
+log("🔐 Адміністратора підтверджено.");
+
+
+log("🏷️ Синхронізація жанрів...");
+
+
+const genreMap =
+await migrateGenres();
+
+
+log(
+`✅ Жанрів готово: ${Object.keys(genreMap).length}`
+);
+
+
+log("📚 Починаю перенесення книг...");
+
+
+const count =
+await migrateBooks(genreMap);
+
+
+log("");
+
+
+log(
+`🎉 ГОТОВО! Перенесено книг: ${count}`
+);
+
+
+log(
+"Тепер книги зберігаються у Supabase."
+);
+
+
+document.getElementById(
+"progress"
+).classList.add("success");
+
+
+button.textContent =
+"✅ Міграцію завершено";
+
+
+}catch(error){
+
+console.error(error);
+
+
+log("");
+
+
+log(
+"❌ ПОМИЛКА:"
+);
+
+
+log(error.message);
+
+
+document.getElementById(
+"progress"
+).classList.add("error");
+
+
+button.disabled=false;
+
+button.textContent =
+"🔄 Спробувати ще раз";
+
+}
+
+}
+
+
+/* ==========================================
+   ПЕРЕВІРКА ПРИ ВІДКРИТТІ
+========================================== */
+
+document.addEventListener(
+"DOMContentLoaded",
+async function(){
+
+const isAdmin =
+await checkAdmin();
+
+
+if(!isAdmin)
+return;
+
+});
+
+</script>
+
+</body>
+</html>

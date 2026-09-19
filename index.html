@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Підтвердження сайту в Google Search Console -->
+    <meta
+        name="google-site-verification"
+        content="DYAYMxXrl734hLQADQk38W36wKUO9K6WNEXUjmwuMwE"
+    />
+
+    <title>BookWorld</title>
+
+    <!-- Основні стилі сайту -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Бібліотека Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Підключення Supabase BookWorld -->
+    <script src="supabase.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <!-- Логотип -->
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <!-- Інформація про користувача -->
+        <span
+            id="user-info"
+            style="
+                color: white;
+                font-weight: bold;
+                margin-right: 10px;
+            ">
+        </span>
+
+        <!-- Кнопка входу -->
+        <a
+            href="login.html"
+            id="login-button"
+            class="cart-button">
+            🔑 Увійти
+        </a>
+
+        <!-- Кнопка виходу -->
+        <button
+            type="button"
+            id="logout-button"
+            class="cart-button"
+            style="
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                display: none;
+            ">
+            🚪 Вийти
+        </button>
+
+        <!-- Кнопка адмінки -->
+        <button
+            type="button"
+            id="admin-button"
+            class="cart-button"
+            style="
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+            ">
+            ⚙️ Адмінка
+        </button>
+
+        <!-- Кошик -->
+        <a
+            href="cart.html"
+            class="cart-button"
+            id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- ==========================================
+     ГОЛОВНА ЧАСТИНА
+========================================== -->
+
+<main>
+
+    <h1>📚 BookWorld</h1>
+
+    <p class="description">
+        Обери жанр книги
+    </p>
+
+
+    <!-- ==========================================
+         ЖАНРИ
+         Жанри завантажуються автоматично з Supabase
+    ========================================== -->
+
+    <div
+        class="genres"
+        id="genres-container">
+
+        <!-- Тут JavaScript автоматично створить жанри -->
+
+    </div>
+
+</main>
+
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     ЗАГАЛЬНА СИСТЕМА BOOKWORLD
+========================================== -->
+
+<script src="script.js"></script>
+
+
+<script>
+
+// ==========================================
+// ПІДКЛЮЧЕННЯ SUPABASE
+// ==========================================
+
+const indexDB =
+    window.BookWorldSupabase;
+
+
+// ==========================================
+// СТАНДАРТНІ ЖАНРИ
+// ==========================================
+//
+// Для них залишаються старі сторінки.
+// Нові жанри автоматично отримують
+// універсальне посилання genre.html
+//
+
+const standardGenres = {
+
+    "fantasy": {
+        emoji: "🐉",
+        page: "fantasy.html"
+    },
+
+    "sci-fi": {
+        emoji: "🚀",
+        page: "sci-fi.html"
+    },
+
+    "detective": {
+        emoji: "🔎",
+        page: "detective.html"
+    },
+
+    "romance": {
+        emoji: "❤️",
+        page: "romance.html"
+    },
+
+    "horror": {
+        emoji: "👻",
+        page: "horror.html"
+    },
+
+    "adventure": {
+        emoji: "🗺️",
+        page: "adventure.html"
+    },
+
+    "history": {
+        emoji: "🏰",
+        page: "history.html"
+    },
+
+    "classic": {
+        emoji: "📜",
+        page: "classic.html"
+    },
+
+    "thriller": {
+        emoji: "🔥",
+        page: "thriller.html"
+    }
+
+};
+
+
+// ==========================================
+// ЗАВАНТАЖЕННЯ ЖАНРІВ
+// ==========================================
+
+async function loadGenres() {
+
+    const container =
+        document.getElementById("genres-container");
+
+
+    // Перевіряємо Supabase
+    if (!indexDB) {
+
+        console.error(
+            "Supabase не підключено"
+        );
+
+        container.innerHTML = `
+            <div class="genre-card">
+                <p>
+                    Не вдалося підключити жанри.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // Отримуємо жанри з бази
+    const {
+        data: genres,
+        error
+    } = await indexDB
+        .from("genres")
+        .select("*")
+        .order("name");
+
+
+    // Якщо виникла помилка
+    if (error) {
+
+        console.error(
+            "Помилка завантаження жанрів:",
+            error
+        );
+
+        container.innerHTML = `
+            <div class="genre-card">
+                <p>
+                    Не вдалося завантажити жанри.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // Очищаємо контейнер
+    container.innerHTML = "";
+
+
+    // Якщо жанрів немає
+    if (!genres || genres.length === 0) {
+
+        container.innerHTML = `
+            <div class="genre-card">
+                <p>
+                    Жанрів поки немає.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    // Створюємо картки жанрів
+    genres.forEach(function(genre) {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "genre-card";
+
+
+        // Перевіряємо, чи це стандартний жанр
+        const standard =
+            standardGenres[genre.code];
+
+
+        // Якщо стандартний жанр
+        if (standard) {
+
+            card.innerHTML = `
+                <a
+                    href="${standard.page}"
+                    class="genre-button">
+
+                    ${standard.emoji}
+                    ${escapeHTML(genre.name)}
+
+                </a>
+            `;
+
+        }
+
+        // Якщо новий користувацький жанр
+        else {
+
+            card.innerHTML = `
+                <a
+                    href="genre.html?code=${encodeURIComponent(genre.code)}"
+                    class="genre-button">
+
+                    📚
+                    ${escapeHTML(genre.name)}
+
+                </a>
+            `;
+
+        }
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+// ==========================================
+// ЗАХИСТ ВІД HTML
+// ==========================================
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text ?? "";
+
+    return div.innerHTML;
+}
+
+
+// ==========================================
+// ПЕРЕВІРКА КОРИСТУВАЧА
+// ==========================================
+
+async function checkUser() {
+
+    if (!indexDB) {
+
+        console.error(
+            "Supabase не підключено"
+        );
+
+        return;
+    }
+
+
+    // Отримуємо поточну сесію
+    const {
+        data: {
+            session
+        }
+    } = await indexDB.auth.getSession();
+
+
+    // Елементи сторінки
+    const userInfo =
+        document.getElementById("user-info");
+
+    const loginButton =
+        document.getElementById("login-button");
+
+    const logoutButton =
+        document.getElementById("logout-button");
+
+
+    // Якщо користувач увійшов
+    if (session && session.user) {
+
+        userInfo.textContent =
+            "👤 " + session.user.email;
+
+        loginButton.style.display =
+            "none";
+
+        logoutButton.style.display =
+            "inline-block";
+
+    }
+
+    // Якщо користувач не увійшов
+    else {
+
+        userInfo.textContent =
+            "";
+
+        loginButton.style.display =
+            "inline-block";
+
+        logoutButton.style.display =
+            "none";
+    }
+
+}
+
+
+// ==========================================
+// ВИХІД З АКАУНТА
+// ==========================================
+
+document
+    .getElementById("logout-button")
+    .addEventListener(
+        "click",
+        async function() {
+
+            await indexDB.auth.signOut();
+
+
+            BookWorld.showToast(
+                "Ви вийшли з акаунта",
+                "success"
+            );
+
+
+            setTimeout(
+                function() {
+
+                    location.reload();
+
+                },
+                700
+            );
+
+        }
+    );
+
+
+// ==========================================
+// АДМІНКА
+// ==========================================
+
+document
+    .getElementById("admin-button")
+    .addEventListener(
+        "click",
+        async function() {
+
+
+            // Перевіряємо сесію
+            const {
+                data: {
+                    session
+                }
+            } = await indexDB.auth.getSession();
+
+
+            // Якщо не увійшов
+            if (!session) {
+
+                BookWorld.showToast(
+                    "Спочатку увійдіть в акаунт",
+                    "warning"
+                );
+
+                return;
+            }
+
+
+            // Отримуємо роль
+            const {
+                data: profile,
+                error
+            } = await indexDB
+                .from("profiles")
+                .select("role")
+                .eq(
+                    "id",
+                    session.user.id
+                )
+                .single();
+
+
+            // Помилка
+            if (error) {
+
+                console.error(error);
+
+                BookWorld.showToast(
+                    "Не вдалося перевірити права",
+                    "error"
+                );
+
+                return;
+            }
+
+
+            // Адміністратор
+            if (
+                profile &&
+                profile.role === "admin"
+            ) {
+
+                window.location.href =
+                    "admin.html";
+
+            }
+
+            // Звичайний користувач
+            else {
+
+                BookWorld.showToast(
+                    "У вас немає доступу до адмінки",
+                    "error"
+                );
+
+            }
+
+        }
+    );
+
+
+// ==========================================
+// ЗАПУСК СТОРІНКИ
+// ==========================================
+
+checkUser();
+
+loadGenres();
+
+</script>
+
+</body>
+</html>

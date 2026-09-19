@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Вхід — BookWorld</title>
+
+    <!-- Основні стилі BookWorld -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Бібліотека Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Підключення нашого Supabase -->
+    <script src="supabase.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <!-- Логотип -->
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+</header>
+
+
+<!-- ==========================================
+     СТОРІНКА ВХОДУ
+========================================== -->
+
+<main class="auth-page">
+
+    <div class="auth-card">
+
+        <h1>🔐 Вхід</h1>
+
+        <p class="auth-subtitle">
+            Увійди у свій акаунт BookWorld
+        </p>
+
+
+        <!-- ==========================================
+             ФОРМА ВХОДУ
+        ========================================== -->
+
+        <form id="login-form">
+
+            <!-- Електронна пошта -->
+            <label for="email">
+                Електронна пошта
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                placeholder="Введи свою пошту"
+                autocomplete="email"
+                required
+            >
+
+
+            <!-- Пароль -->
+            <label for="password">
+                Пароль
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Введи пароль"
+                autocomplete="current-password"
+                required
+            >
+
+
+            <!-- Кнопка входу -->
+            <button
+                type="submit"
+                class="auth-button"
+                id="login-button">
+                Увійти
+            </button>
+
+        </form>
+
+
+        <!-- ==========================================
+             ПОВІДОМЛЕННЯ
+        ========================================== -->
+
+        <div
+            class="auth-message"
+            id="login-message">
+        </div>
+
+
+        <!-- ==========================================
+             ДОДАТКОВІ ПОСИЛАННЯ
+        ========================================== -->
+
+        <div class="auth-bottom">
+
+            <p>
+                Ще немає акаунта?
+                <a href="register.html">
+                    Зареєструватися
+                </a>
+            </p>
+
+            <p>
+                <a href="index.html">
+                    ← Повернутися на головну
+                </a>
+            </p>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+
+// ==========================================
+// ОТРИМУЄМО ЕЛЕМЕНТИ СТОРІНКИ
+// ==========================================
+
+const loginForm =
+    document.getElementById("login-form");
+
+const loginMessage =
+    document.getElementById("login-message");
+
+const loginButton =
+    document.getElementById("login-button");
+
+
+// ==========================================
+// ВХІД В АКАУНТ
+// ==========================================
+
+loginForm.addEventListener(
+    "submit",
+    async function(event) {
+
+        // Не дозволяємо браузеру перезавантажити сторінку
+        event.preventDefault();
+
+
+        // Отримуємо дані з форми
+        const email =
+            document
+                .getElementById("email")
+                .value
+                .trim();
+
+        const password =
+            document
+                .getElementById("password")
+                .value;
+
+
+        // ==========================================
+        // ПЕРЕВІРКА SUPABASE
+        // ==========================================
+
+        const loginDB =
+            window.BookWorldSupabase;
+
+
+        if (!loginDB) {
+
+            loginMessage.textContent =
+                "❌ Не вдалося підключитися до сервера.";
+
+            loginMessage.style.color =
+                "red";
+
+            return;
+        }
+
+
+        // ==========================================
+        // БЛОКУЄМО КНОПКУ
+        // ==========================================
+
+        loginButton.disabled = true;
+
+        loginButton.textContent =
+            "Вхід...";
+
+
+        // ==========================================
+        // ВХОДИМО ЧЕРЕЗ SUPABASE
+        // ==========================================
+
+        const {
+            data,
+            error
+        } =
+            await loginDB.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+
+        // ==========================================
+        // ОБРОБКА ПОМИЛКИ
+        // ==========================================
+
+        if (error) {
+
+            console.error(
+                "Помилка входу:",
+                error
+            );
+
+
+            // Зрозуміле повідомлення для користувача
+            if (
+                error.message
+                    .toLowerCase()
+                    .includes("email not confirmed")
+            ) {
+
+                loginMessage.textContent =
+                    "❌ Спочатку підтвердь свою електронну пошту.";
+
+            } else {
+
+                loginMessage.textContent =
+                    "❌ Неправильна пошта або пароль.";
+            }
+
+
+            loginMessage.style.color =
+                "red";
+
+
+            // Повертаємо кнопку
+            loginButton.disabled =
+                false;
+
+            loginButton.textContent =
+                "Увійти";
+
+            return;
+        }
+
+
+        // ==========================================
+        // УСПІШНИЙ ВХІД
+        // ==========================================
+
+        if (data && data.user) {
+
+            loginMessage.textContent =
+                "✅ Вхід виконано!";
+
+            loginMessage.style.color =
+                "green";
+
+
+            // Невелика затримка перед переходом
+            setTimeout(
+                function() {
+
+                    window.location.href =
+                        "index.html";
+
+                },
+                700
+            );
+
+        } else {
+
+            // Якщо Supabase не повернув користувача
+            loginMessage.textContent =
+                "❌ Не вдалося виконати вхід.";
+
+            loginMessage.style.color =
+                "red";
+
+
+            loginButton.disabled =
+                false;
+
+            loginButton.textContent =
+                "Увійти";
+        }
+
+    }
+);
+
+</script>
+
+</body>
+
+</html>

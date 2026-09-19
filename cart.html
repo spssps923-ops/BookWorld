@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Кошик — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Підключення Supabase -->
+    <script src="supabase.js"></script>
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld — Кошик
+    </div>
+
+    <div>
+
+        <a
+            href="index.html"
+            class="cart-button"
+        >
+            🏠 Головна
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>🛒 Ваш кошик</h1>
+
+    <p class="description">
+        Тут знаходяться вибрані вами книги
+    </p>
+
+    <div
+        class="books-grid"
+        id="cart-grid"
+    ></div>
+
+</main>
+
+
+<footer>
+    © 2026 BookWorld
+</footer>
+
+
+<script>
+
+/* =========================================================
+   BOOKWORLD — КОШИК
+   ========================================================= */
+
+const cartDB =
+    window.BookWorldSupabase;
+
+
+const cartContainer =
+    document.getElementById("cart-grid");
+
+
+/* =========================================================
+   ЗАХИСТ HTML
+   ========================================================= */
+
+function escapeHTML(text) {
+
+    if (
+        text === null ||
+        text === undefined
+    ) {
+        return "";
+    }
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   ПОВІДОМЛЕННЯ
+   ========================================================= */
+
+function showCartMessage(
+    title,
+    text,
+    buttonText = "📚 До книг",
+    buttonLink = "index.html"
+) {
+
+    cartContainer.innerHTML = `
+
+        <div class="empty-cart">
+
+            <h2>
+                ${escapeHTML(title)}
+            </h2>
+
+            <p>
+                ${escapeHTML(text)}
+            </p>
+
+            <a
+                href="${buttonLink}"
+                class="cart-button"
+            >
+                ${escapeHTML(buttonText)}
+            </a>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   ОТРИМАННЯ КОРИСТУВАЧА
+   ========================================================= */
+
+async function getCurrentUser() {
+
+    const result =
+        await cartDB.auth.getUser();
+
+
+    if (result.error) {
+
+        console.error(
+            "Помилка отримання користувача:",
+            result.error
+        );
+
+        return null;
+
+    }
+
+
+    return result.data.user || null;
+
+}
+
+
+/* =========================================================
+   ОТРИМАННЯ КНИГИ
+   ========================================================= */
+
+async function getBook(bookCode) {
+
+    const result =
+        await cartDB
+            .from("books")
+            .select(`
+                id,
+                book_code,
+                title,
+                author,
+                image_url,
+                price,
+                is_deleted
+            `)
+            .eq(
+                "book_code",
+                bookCode
+            )
+            .maybeSingle();
+
+
+    if (result.error) {
+
+        console.error(
+            "Помилка отримання книги:",
+            result.error
+        );
+
+        return null;
+
+    }
+
+
+    return result.data || null;
+
+}
+
+
+/* =========================================================
+   ОТРИМАННЯ UUID КНИГИ
+   ========================================================= */
+
+async function getBookUUID(bookCode) {
+
+    const result =
+        await cartDB
+            .from("books")
+            .select("id")
+            .eq(
+                "book_code",
+                bookCode
+            )
+            .maybeSingle();
+
+
+    if (result.error) {
+
+        console.error(
+            "Помилка пошуку книги:",
+            result.error
+        );
+
+        return null;
+
+    }
+
+
+    if (!result.data) {
+
+        return null;
+
+    }
+
+
+    return result.data.id;
+
+}
+
+
+/* =========================================================
+   СТВОРЕННЯ КАРТКИ
+   ========================================================= */
+
+function createCartCard(
+    item
+) {
+
+    const book =
+        item.books;
+
+
+    const bookCode =
+        book.book_code;
+
+
+    const title =
+        escapeHTML(
+            book.title ||
+            "Без назви"
+        );
+
+
+    const author =
+        escapeHTML(
+            book.author ||
+            "Автор не вказаний"
+        );
+
+
+    const quantity =
+        Math.max(
+            1,
+            Number(item.quantity) || 1
+        );
+
+
+    /* =====================================================
+       ОБКЛАДИНКА
+       ===================================================== */
+
+    let coverHTML =
+        "📖";
+
+
+    if (book.image_url) {
+
+        const imageURL =
+            escapeHTML(
+                String(book.image_url)
+            );
+
+
+        coverHTML = `
+
+            <img
+                src="${imageURL}"
+                alt="${title}"
+                onerror="
+                    this.style.display='none';
+                    this.parentElement.innerHTML='📖';
+                "
+            >
+
+        `;
+
+    }
+
+
+    /* =====================================================
+       ЦІНА
+       ===================================================== */
+
+    let priceHTML =
+        "";
+
+
+    if (
+        book.price !== null &&
+        book.price !== undefined &&
+        book.price !== ""
+    ) {
+
+        priceHTML = `
+
+            <p class="price">
+                💰 ${escapeHTML(book.price)} грн
+            </p>
+
+        `;
+
+    }
+
+
+    /* =====================================================
+       КАРТКА
+       ===================================================== */
+
+    const card =
+        document.createElement("div");
+
+
+    card.className =
+        "book-card";
+
+
+    card.dataset.bookCode =
+        bookCode;
+
+
+    card.innerHTML = `
+
+        <div
+            class="book-cover cart-book-cover"
+            style="cursor:pointer;"
+        >
+            ${coverHTML}
+        </div>
+
+
+        <h2
+            class="cart-book-title"
+            style="cursor:pointer;"
+        >
+            ${title}
+        </h2>
+
+
+        <p class="book-author">
+            ${author}
+        </p>
+
+
+        ${priceHTML}
+
+
+        <p class="cart-quantity">
+            <strong>
+                🛒 Кількість: ${quantity}
+            </strong>
+        </p>
+
+
+        <div
+            class="cart-actions"
+            style="
+                display:flex;
+                gap:8px;
+                flex-wrap:wrap;
+                margin-top:auto;
+            "
+        >
+
+            <button
+                class="add-to-cart cart-add-button"
+                type="button"
+            >
+                ➕ Додати
+            </button>
+
+
+            <button
+                class="remove-from-cart cart-remove-button"
+                type="button"
+            >
+                ➖ Прибрати
+            </button>
+
+        </div>
+
+    `;
+
+
+    /* =====================================================
+       ПЕРЕХІД НА СТОРІНКУ КНИГИ
+       ===================================================== */
+
+    function openBook() {
+
+        window.location.href =
+            "book.html?id=" +
+            encodeURIComponent(
+                bookCode
+            );
+
+    }
+
+
+    card
+        .querySelector(".cart-book-cover")
+        .addEventListener(
+            "click",
+            openBook
+        );
+
+
+    card
+        .querySelector(".cart-book-title")
+        .addEventListener(
+            "click",
+            openBook
+        );
+
+
+    /* =====================================================
+       ДОДАТИ
+       ===================================================== */
+
+    card
+        .querySelector(".cart-add-button")
+        .addEventListener(
+            "click",
+            async function(event) {
+
+                event.stopPropagation();
+
+                await addBook(
+                    bookCode,
+                    card
+                );
+
+            }
+        );
+
+
+    /* =====================================================
+       ПРИБРАТИ
+       ===================================================== */
+
+    card
+        .querySelector(".cart-remove-button")
+        .addEventListener(
+            "click",
+            async function(event) {
+
+                event.stopPropagation();
+
+                await removeBook(
+                    bookCode,
+                    card
+                );
+
+            }
+        );
+
+
+    return card;
+
+}
+
+
+/* =========================================================
+   ОНОВЛЕННЯ ОДНІЄЇ КАРТКИ
+   ========================================================= */
+
+async function updateCartCard(
+    bookCode,
+    card
+) {
+
+    const user =
+        await getCurrentUser();
+
+
+    if (!user) {
+        return;
+    }
+
+
+    const bookUUID =
+        await getBookUUID(
+            bookCode
+        );
+
+
+    if (!bookUUID) {
+        return;
+    }
+
+
+    const result =
+        await cartDB
+            .from("cart_items")
+            .select(`
+                id,
+                quantity,
+                book_id,
+                books (
+                    id,
+                    book_code,
+                    title,
+                    author,
+                    image_url,
+                    price,
+                    is_deleted
+                )
+            `)
+            .eq(
+                "user_id",
+                user.id
+            )
+            .eq(
+                "book_id",
+                bookUUID
+            )
+            .maybeSingle();
+
+
+    if (result.error) {
+
+        console.error(
+            "Помилка оновлення картки:",
+            result.error
+        );
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       КНИГИ БІЛЬШЕ НЕМАЄ В КОШИКУ
+       ===================================================== */
+
+    if (
+        !result.data ||
+        !result.data.books ||
+        result.data.books.is_deleted === true
+    ) {
+
+        card.remove();
+
+
+        if (
+            cartContainer.querySelectorAll(
+                ".book-card"
+            ).length === 0
+        ) {
+
+            showCartMessage(
+                "🛒 Кошик порожній",
+                "Додайте книги з каталогу."
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       ЗАМІНЮЄМО ТІЛЬКИ ЦЮ КАРТКУ
+       ===================================================== */
+
+    const newCard =
+        createCartCard(
+            result.data
+        );
+
+
+    card.replaceWith(
+        newCard
+    );
+
+}
+
+
+/* =========================================================
+   ПОЧАТКОВЕ ЗАВАНТАЖЕННЯ КОШИКА
+   ========================================================= */
+
+async function loadCart() {
+
+    cartContainer.innerHTML = `
+
+        <div class="empty-cart">
+
+            <h2>
+                📚 Завантаження...
+            </h2>
+
+            <p>
+                Завантажуємо ваш кошик.
+            </p>
+
+        </div>
+
+    `;
+
+
+    try {
+
+        /* =================================================
+           КОРИСТУВАЧ
+           ================================================= */
+
+        const user =
+            await getCurrentUser();
+
+
+        if (!user) {
+
+            showCartMessage(
+                "🔐 Увійдіть в акаунт",
+                "Щоб користуватися кошиком, потрібно увійти в акаунт.",
+                "🔑 Увійти",
+                "login.html"
+            );
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ОТРИМУЄМО КОШИК
+           ================================================= */
+
+        const result =
+            await cartDB
+                .from("cart_items")
+                .select(`
+                    id,
+                    quantity,
+                    book_id,
+                    books (
+                        id,
+                        book_code,
+                        title,
+                        author,
+                        image_url,
+                        price,
+                        is_deleted
+                    )
+                `)
+                .eq(
+                    "user_id",
+                    user.id
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (result.error) {
+
+            console.error(
+                "Помилка завантаження кошика:",
+                result.error
+            );
+
+            showCartMessage(
+                "❌ Помилка",
+                "Не вдалося завантажити кошик."
+            );
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ФІЛЬТРУЄМО ВИДАЛЕНІ КНИГИ
+           ================================================= */
+
+        const validItems =
+            (result.data || [])
+                .filter(
+                    function(item) {
+
+                        return (
+                            item.books &&
+                            item.books.is_deleted !== true
+                        );
+
+                    }
+                );
+
+
+        /* =================================================
+           ПУСТИЙ КОШИК
+           ================================================= */
+
+        if (
+            validItems.length === 0
+        ) {
+
+            showCartMessage(
+                "🛒 Кошик порожній",
+                "Додайте книги з каталогу."
+            );
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ВІДОБРАЖАЄМО КАРТКИ
+           ================================================= */
+
+        cartContainer.innerHTML = "";
+
+
+        validItems.forEach(
+            function(item) {
+
+                const card =
+                    createCartCard(
+                        item
+                    );
+
+
+                cartContainer.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка кошика:",
+            error
+        );
+
+        showCartMessage(
+            "❌ Помилка",
+            "Сталася помилка під час завантаження кошика."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ДОДАТИ КНИГУ
+   ========================================================= */
+
+async function addBook(
+    bookCode,
+    card
+) {
+
+    try {
+
+        const user =
+            await getCurrentUser();
+
+
+        if (!user) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+
+        }
+
+
+        /* =================================================
+           БЛОКУЄМО КНОПКУ
+           ================================================= */
+
+        const button =
+            card.querySelector(
+                ".cart-add-button"
+            );
+
+
+        if (button) {
+            button.disabled = true;
+        }
+
+
+        /* =================================================
+           UUID КНИГИ
+           ================================================= */
+
+        const bookUUID =
+            await getBookUUID(
+                bookCode
+            );
+
+
+        if (!bookUUID) {
+
+            alert(
+                "Книгу не знайдено."
+            );
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ІСНУЮЧИЙ ЗАПИС
+           ================================================= */
+
+        const existingResult =
+            await cartDB
+                .from("cart_items")
+                .select(
+                    "id, quantity"
+                )
+                .eq(
+                    "user_id",
+                    user.id
+                )
+                .eq(
+                    "book_id",
+                    bookUUID
+                )
+                .maybeSingle();
+
+
+        if (existingResult.error) {
+
+            console.error(
+                "Помилка перевірки кошика:",
+                existingResult.error
+            );
+
+            alert(
+                "Не вдалося перевірити кошик."
+            );
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ЗБІЛЬШУЄМО КІЛЬКІСТЬ
+           ================================================= */
+
+        if (
+            existingResult.data
+        ) {
+
+            const newQuantity =
+                Number(
+                    existingResult.data.quantity
+                ) + 1;
+
+
+            const updateResult =
+                await cartDB
+                    .from("cart_items")
+                    .update({
+
+                        quantity:
+                            newQuantity
+
+                    })
+                    .eq(
+                        "id",
+                        existingResult.data.id
+                    )
+                    .eq(
+                        "user_id",
+                        user.id
+                    );
+
+
+            if (updateResult.error) {
+
+                console.error(
+                    "Помилка збільшення:",
+                    updateResult.error
+                );
+
+                alert(
+                    "Не вдалося додати книгу."
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ДОДАЄМО НОВУ КНИГУ
+           ================================================= */
+
+        else {
+
+            const insertResult =
+                await cartDB
+                    .from("cart_items")
+                    .insert({
+
+                        user_id:
+                            user.id,
+
+                        book_id:
+                            bookUUID,
+
+                        quantity:
+                            1
+
+                    });
+
+
+            if (insertResult.error) {
+
+                console.error(
+                    "Помилка додавання:",
+                    insertResult.error
+                );
+
+                alert(
+                    "Не вдалося додати книгу до кошика."
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ОНОВЛЮЄМО ТІЛЬКИ ЦЮ КАРТКУ
+           ================================================= */
+
+        await updateCartCard(
+            bookCode,
+            card
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка додавання:",
+            error
+        );
+
+        alert(
+            "Сталася помилка."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ПРИБРАТИ ОДНУ КНИГУ
+   ========================================================= */
+
+async function removeBook(
+    bookCode,
+    card
+) {
+
+    try {
+
+        const user =
+            await getCurrentUser();
+
+
+        if (!user) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+
+        }
+
+
+        const button =
+            card.querySelector(
+                ".cart-remove-button"
+            );
+
+
+        if (button) {
+            button.disabled = true;
+        }
+
+
+        /* =================================================
+           UUID
+           ================================================= */
+
+        const bookUUID =
+            await getBookUUID(
+                bookCode
+            );
+
+
+        if (!bookUUID) {
+            return;
+        }
+
+
+        /* =================================================
+           ІСНУЮЧИЙ ЗАПИС
+           ================================================= */
+
+        const existingResult =
+            await cartDB
+                .from("cart_items")
+                .select(
+                    "id, quantity"
+                )
+                .eq(
+                    "user_id",
+                    user.id
+                )
+                .eq(
+                    "book_id",
+                    bookUUID
+                )
+                .maybeSingle();
+
+
+        if (existingResult.error) {
+
+            console.error(
+                "Помилка пошуку:",
+                existingResult.error
+            );
+
+            return;
+
+        }
+
+
+        if (!existingResult.data) {
+            return;
+        }
+
+
+        const newQuantity =
+            Number(
+                existingResult.data.quantity
+            ) - 1;
+
+
+        /* =================================================
+           ПОВНЕ ВИДАЛЕННЯ
+           ================================================= */
+
+        if (
+            newQuantity <= 0
+        ) {
+
+            const deleteResult =
+                await cartDB
+                    .from("cart_items")
+                    .delete()
+                    .eq(
+                        "id",
+                        existingResult.data.id
+                    )
+                    .eq(
+                        "user_id",
+                        user.id
+                    );
+
+
+            if (deleteResult.error) {
+
+                console.error(
+                    "Помилка видалення:",
+                    deleteResult.error
+                );
+
+                alert(
+                    "Не вдалося прибрати книгу."
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ЗМЕНШЕННЯ КІЛЬКОСТІ
+           ================================================= */
+
+        else {
+
+            const updateResult =
+                await cartDB
+                    .from("cart_items")
+                    .update({
+
+                        quantity:
+                            newQuantity
+
+                    })
+                    .eq(
+                        "id",
+                        existingResult.data.id
+                    )
+                    .eq(
+                        "user_id",
+                        user.id
+                    );
+
+
+            if (updateResult.error) {
+
+                console.error(
+                    "Помилка зміни кількості:",
+                    updateResult.error
+                );
+
+                alert(
+                    "Не вдалося змінити кількість."
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ОНОВЛЮЄМО ТІЛЬКИ ЦЮ КАРТКУ
+           ================================================= */
+
+        await updateCartCard(
+            bookCode,
+            card
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка видалення:",
+            error
+        );
+
+        alert(
+            "Сталася помилка."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ЗАПУСК
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadCart();
+
+    }
+);
+
+</script>
+
+</body>
+</html>

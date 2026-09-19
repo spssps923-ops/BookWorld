@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Міграція BookWorld</title>
+
+    <!-- Основні стилі BookWorld -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Бібліотека Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Підключення Supabase BookWorld -->
+    <script src="supabase.js"></script>
+</head>
+
+<body>
+
+<!-- ==========================================
+     ГОЛОВНЕ ВІКНО
+========================================== -->
+
+<main class="auth-page">
+
+    <div class="auth-card">
+
+        <h1>🚀 Міграція BookWorld</h1>
+
+        <p class="auth-subtitle">
+            Перенесення книг і жанрів у Supabase
+        </p>
+
+
+        <!-- Кнопка запуску -->
+        <button
+            type="button"
+            class="auth-button"
+            id="start-button">
+            🚀 Почати міграцію
+        </button>
+
+
+        <!-- Статус -->
+        <div
+            id="status"
+            class="auth-message">
+            Готово до запуску.
+        </div>
+
+
+        <!-- Журнал роботи -->
+        <div
+            id="log"
+            style="
+                margin-top: 20px;
+                padding: 15px;
+                background: #f5f5f5;
+                border-radius: 10px;
+                max-height: 300px;
+                overflow-y: auto;
+                text-align: left;
+                font-size: 14px;
+                line-height: 1.6;
+            ">
+        </div>
+
+
+        <!-- Перехід назад -->
+        <div
+            style="
+                text-align: center;
+                margin-top: 20px;
+            ">
+
+            <a href="admin.html">
+                ⚙️ Перейти в адмінку
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+
+// ==========================================
+// BOOKWORLD — МІГРАЦІЯ В SUPABASE
+// ==========================================
+
+// Беремо вже готове підключення
+// із supabase.js.
+//
+// Не створюємо supabaseClient повторно.
+
+const migrationDB =
+    window.BookWorldSupabase;
+
+
+// ==========================================
+// СТАНДАРТНІ ЖАНРИ
+// ==========================================
+
+const standardGenres = [
+
+    {
+        code: "fantasy",
+        name: "Фентезі",
+        emoji: "🐉"
+    },
+
+    {
+        code: "sci-fi",
+        name: "Фантастика",
+        emoji: "🚀"
+    },
+
+    {
+        code: "detective",
+        name: "Детектив",
+        emoji: "🔎"
+    },
+
+    {
+        code: "romance",
+        name: "Роман",
+        emoji: "❤️"
+    },
+
+    {
+        code: "horror",
+        name: "Жахи",
+        emoji: "👻"
+    },
+
+    {
+        code: "adventure",
+        name: "Пригоди",
+        emoji: "🗺️"
+    },
+
+    {
+        code: "history",
+        name: "Історичні",
+        emoji: "🏰"
+    },
+
+    {
+        code: "classic",
+        name: "Класика",
+        emoji: "📜"
+    },
+
+    {
+        code: "thriller",
+        name: "Трилери",
+        emoji: "🔥"
+    }
+
+];
+
+
+// ==========================================
+// СТАНДАРТНІ КНИГИ
+// ==========================================
+
+const standardBooks = [
+
+    {
+        id: "f1",
+        title: "Четверте крило",
+        author: "Ребекка Яррос",
+        genre: "fantasy",
+        emoji: "🐉",
+        description:
+            "Захоплива історія про драконів, війну та випробування."
+    },
+
+    {
+        id: "f2",
+        title: "Ртуть",
+        author: "Автор книги",
+        genre: "fantasy",
+        emoji: "⚔️",
+        description:
+            "Фентезійна історія з небезпечними пригодами."
+    },
+
+    {
+        id: "f3",
+        title: "Володар перснів",
+        author: "Дж. Р. Р. Толкін",
+        genre: "fantasy",
+        emoji: "🧙",
+        description:
+            "Класична історія про Середзем'я та небезпечну подорож."
+    },
+
+    {
+        id: "f4",
+        title: "Гаррі Поттер",
+        author: "Дж. К. Ролінґ",
+        genre: "fantasy",
+        emoji: "⚡",
+        description:
+            "Історія юного чарівника та його друзів."
+    },
+
+
+    {
+        id: "s1",
+        title: "Дюна",
+        author: "Френк Герберт",
+        genre: "sci-fi",
+        emoji: "🪐",
+        description:
+            "Епічна науково-фантастична історія."
+    },
+
+    {
+        id: "s2",
+        title: "1984",
+        author: "Джордж Орвелл",
+        genre: "sci-fi",
+        emoji: "🤖",
+        description:
+            "Антиутопічний роман про тоталітарне суспільство."
+    },
+
+    {
+        id: "s3",
+        title: "Марсіянин",
+        author: "Енді Вейр",
+        genre: "sci-fi",
+        emoji: "🚀",
+        description:
+            "Історія виживання астронавта на Марсі."
+    },
+
+    {
+        id: "s4",
+        title: "Автостопом по галактиці",
+        author: "Дуглас Адамс",
+        genre: "sci-fi",
+        emoji: "🌌",
+        description:
+            "Гумористична подорож космосом."
+    },
+
+
+    {
+        id: "d1",
+        title: "Вбивство у «Східному експресі»",
+        author: "Аґата Крісті",
+        genre: "detective",
+        emoji: "🔎",
+        description:
+            "Знаменитий детектив Еркюля Пуаро."
+    },
+
+    {
+        id: "d2",
+        title: "Шерлок Холмс",
+        author: "Артур Конан Дойл",
+        genre: "detective",
+        emoji: "🕵️",
+        description:
+            "Пригоди знаменитого детектива."
+    },
+
+    {
+        id: "d3",
+        title: "Таємничий острів",
+        author: "Жуль Верн",
+        genre: "detective",
+        emoji: "🗝️",
+        description:
+            "Таємнича історія та неймовірні пригоди."
+    },
+
+    {
+        id: "d4",
+        title: "Десять негренят",
+        author: "Аґата Крісті",
+        genre: "detective",
+        emoji: "🩸",
+        description:
+            "Таємничий детективний роман."
+    },
+
+
+    {
+        id: "r1",
+        title: "Гордість і упередження",
+        author: "Джейн Остін",
+        genre: "romance",
+        emoji: "❤️",
+        description:
+            "Відомий роман про кохання та суспільство."
+    },
+
+    {
+        id: "r2",
+        title: "До зустрічі з тобою",
+        author: "Джоджо Мойєс",
+        genre: "romance",
+        emoji: "🌹",
+        description:
+            "Емоційна історія кохання."
+    },
+
+    {
+        id: "r3",
+        title: "Щоденник пам'яті",
+        author: "Ніколас Спаркс",
+        genre: "romance",
+        emoji: "💌",
+        description:
+            "Романтична історія про кохання."
+    },
+
+    {
+        id: "r4",
+        title: "Маленькі жінки",
+        author: "Луїза Мей Олкотт",
+        genre: "romance",
+        emoji: "🌸",
+        description:
+            "Історія життя чотирьох сестер."
+    },
+
+
+    {
+        id: "h1",
+        title: "Воно",
+        author: "Стівен Кінг",
+        genre: "horror",
+        emoji: "👻",
+        description:
+            "Відомий роман жахів."
+    },
+
+    {
+        id: "h2",
+        title: "Кладовище домашніх тварин",
+        author: "Стівен Кінг",
+        genre: "horror",
+        emoji: "💀",
+        description:
+            "Містична історія про таємниче кладовище."
+    },
+
+    {
+        id: "h3",
+        title: "Дракула",
+        author: "Брем Стокер",
+        genre: "horror",
+        emoji: "🧛",
+        description:
+            "Класична історія про вампіра."
+    },
+
+    {
+        id: "h4",
+        title: "Інтерв'ю з вампіром",
+        author: "Енн Райс",
+        genre: "horror",
+        emoji: "🩸",
+        description:
+            "Історія життя вампіра."
+    },
+
+
+    {
+        id: "a1",
+        title: "Острів скарбів",
+        author: "Роберт Луїс Стівенсон",
+        genre: "adventure",
+        emoji: "🏝️",
+        description:
+            "Пригодницька історія про пошуки скарбів."
+    },
+
+    {
+        id: "a2",
+        title: "20 000 льє під водою",
+        author: "Жуль Верн",
+        genre: "adventure",
+        emoji: "🌊",
+        description:
+            "Неймовірна подорож підводним світом."
+    },
+
+    {
+        id: "a3",
+        title: "Навколо світу за 80 днів",
+        author: "Жуль Верн",
+        genre: "adventure",
+        emoji: "🌍",
+        description:
+            "Знаменита подорож навколо світу."
+    },
+
+    {
+        id: "a4",
+        title: "Загублений світ",
+        author: "Артур Конан Дойл",
+        genre: "adventure",
+        emoji: "🗺️",
+        description:
+            "Пригоди у загадковому загубленому світі."
+    },
+
+
+    {
+        id: "hi1",
+        title: "Три мушкетери",
+        author: "Олександр Дюма",
+        genre: "history",
+        emoji: "⚔️",
+        description:
+            "Історико-пригодницький роман."
+    },
+
+    {
+        id: "hi2",
+        title: "Айвенго",
+        author: "Вальтер Скотт",
+        genre: "history",
+        emoji: "🏰",
+        description:
+            "Історичний роман про лицарів."
+    },
+
+    {
+        id: "hi3",
+        title: "Війна і мир",
+        author: "Лев Толстой",
+        genre: "history",
+        emoji: "👑",
+        description:
+            "Відомий історичний роман."
+    },
+
+    {
+        id: "hi4",
+        title: "Клеопатра",
+        author: "Маргарет Джордж",
+        genre: "history",
+        emoji: "👸",
+        description:
+            "Історія життя Клеопатри."
+    },
+
+
+    {
+        id: "c1",
+        title: "Маленький принц",
+        author: "Антуан де Сент-Екзюпері",
+        genre: "classic",
+        emoji: "🌟",
+        description:
+            "Всесвітньо відома філософська казка."
+    },
+
+    {
+        id: "c2",
+        title: "Фауст",
+        author: "Йоганн Вольфганг фон Ґете",
+        genre: "classic",
+        emoji: "📜",
+        description:
+            "Класичний твір Ґете."
+    },
+
+    {
+        id: "c3",
+        title: "Мобі Дік",
+        author: "Герман Мелвілл",
+        genre: "classic",
+        emoji: "🐋",
+        description:
+            "Знаменитий роман про полювання на білого кита."
+    },
+
+    {
+        id: "c4",
+        title: "Гамлет",
+        author: "Вільям Шекспір",
+        genre: "classic",
+        emoji: "🎭",
+        description:
+            "Одна з найвідоміших трагедій Шекспіра."
+    },
+
+
+    {
+        id: "t1",
+        title: "Дівчина у потягу",
+        author: "Пола Гокінз",
+        genre: "thriller",
+        emoji: "🚂",
+        description:
+            "Психологічний трилер."
+    },
+
+    {
+        id: "t2",
+        title: "Мовчання ягнят",
+        author: "Томас Харріс",
+        genre: "thriller",
+        emoji: "🤫",
+        description:
+            "Відомий психологічний трилер."
+    },
+
+    {
+        id: "t3",
+        title: "Сніговик",
+        author: "Ю Несбьо",
+        genre: "thriller",
+        emoji: "❄️",
+        description:
+            "Детективний трилер."
+    },
+
+    {
+        id: "t4",
+        title: "Острів проклятих",
+        author: "Денніс Ліхейн",
+        genre: "thriller",
+        emoji: "🏝️",
+        description:
+            "Психологічний трилер."
+    }
+
+];
+
+
+// ==========================================
+// ВИВЕДЕННЯ ПОВІДОМЛЕННЯ
+// ==========================================
+
+function log(message) {
+
+    const logBox =
+        document.getElementById("log");
+
+
+    const line =
+        document.createElement("div");
+
+
+    line.textContent =
+        message;
+
+
+    logBox.appendChild(line);
+
+
+    logBox.scrollTop =
+        logBox.scrollHeight;
+
+}
+
+
+// ==========================================
+// ЗМІНА СТАТУСУ
+// ==========================================
+
+function setStatus(message) {
+
+    document.getElementById(
+        "status"
+    ).textContent = message;
+
+}
+
+
+// ==========================================
+// ЧИСЛОВЕ ПОЛЕ
+// ==========================================
+
+function numberOrNull(value) {
+
+    /*
+     * Якщо поле порожнє —
+     * передаємо null.
+     */
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return null;
+
+    }
+
+
+    const cleaned =
+        String(value)
+            .replace(",", ".")
+            .trim();
+
+
+    if (cleaned === "") {
+
+        return null;
+
+    }
+
+
+    const number =
+        Number(cleaned);
+
+
+    if (Number.isNaN(number)) {
+
+        return null;
+
+    }
+
+
+    return number;
+
+}
+
+
+// ==========================================
+// ПЕРЕВІРКА ПІДКЛЮЧЕННЯ
+// ==========================================
+
+function checkSupabaseConnection() {
+
+    if (!migrationDB) {
+
+        throw new Error(
+            "Supabase не підключено."
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ПЕРЕВІРКА АДМІНІСТРАТОРА
+// ==========================================
+
+async function checkAdmin() {
+
+    checkSupabaseConnection();
+
+
+    const {
+        data: {
+            session
+        }
+    } =
+        await migrationDB.auth.getSession();
+
+
+    if (!session) {
+
+        throw new Error(
+            "Ти не увійшов у свій акаунт."
+        );
+
+    }
+
+
+    const {
+        data: profile,
+        error
+    } =
+        await migrationDB
+            .from("profiles")
+            .select("role")
+            .eq(
+                "id",
+                session.user.id
+            )
+            .single();
+
+
+    if (error) {
+
+        throw error;
+
+    }
+
+
+    if (
+        !profile ||
+        profile.role !== "admin"
+    ) {
+
+        throw new Error(
+            "У тебе немає прав адміністратора."
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ПЕРЕНЕСЕННЯ ЖАНРІВ
+// ==========================================
+
+async function migrateGenres() {
+
+    log(
+        "📚 Перевіряємо жанри..."
+    );
+
+
+    const genreMap = {};
+
+
+    for (
+        const genre
+        of standardGenres
+    ) {
+
+        const {
+            data: existing,
+            error: findError
+        } =
+            await migrationDB
+                .from("genres")
+                .select("id")
+                .eq(
+                    "code",
+                    genre.code
+                )
+                .maybeSingle();
+
+
+        if (findError) {
+
+            throw findError;
+
+        }
+
+
+        let genreId;
+
+
+        // Якщо жанр вже існує
+        if (existing) {
+
+            genreId =
+                existing.id;
+
+
+            log(
+                `✔ Жанр вже існує: ${genre.name}`
+            );
+
+        }
+
+        // Якщо жанру ще немає
+        else {
+
+            const {
+                data: created,
+                error: insertError
+            } =
+                await migrationDB
+                    .from("genres")
+                    .insert({
+
+                        name:
+                            genre.name,
+
+                        code:
+                            genre.code
+
+                    })
+                    .select("id")
+                    .single();
+
+
+            if (insertError) {
+
+                throw insertError;
+
+            }
+
+
+            genreId =
+                created.id;
+
+
+            log(
+                `➕ Додано жанр: ${genre.name}`
+            );
+
+        }
+
+
+        genreMap[
+            genre.code
+        ] = genreId;
+
+    }
+
+
+    return genreMap;
+
+}
+
+
+// ==========================================
+// ПЕРЕНЕСЕННЯ СТАНДАРТНИХ КНИГ
+// ==========================================
+
+async function migrateStandardBooks(
+    genreMap
+) {
+
+    log(
+        "📖 Переносимо стандартні книги..."
+    );
+
+
+    // Старі видалені книги
+    const deletedBooks =
+        JSON.parse(
+            localStorage.getItem(
+                "deletedStandardBooks"
+            ) || "[]"
+        );
+
+
+    // Старі редагування книг
+    const bookEdits =
+        JSON.parse(
+            localStorage.getItem(
+                "bookEdits"
+            ) || "{}"
+        );
+
+
+    for (
+        const book
+        of standardBooks
+    ) {
+
+        const edited =
+            bookEdits[
+                book.id
+            ] || {};
+
+
+        const isDeleted =
+            deletedBooks.includes(
+                book.id
+            );
+
+
+        const genreCode =
+            edited.genre ??
+            book.genre;
+
+
+        const bookData = {
+
+            book_code:
+                book.id,
+
+            title:
+                edited.title ??
+                book.title ??
+                "",
+
+            author:
+                edited.author ??
+                book.author ??
+                "",
+
+            genre_id:
+                genreMap[
+                    genreCode
+                ] || null,
+
+            description:
+                edited.description ??
+                book.description ??
+                "",
+
+            image_url:
+                edited.image_url ??
+                book.image_url ??
+                "",
+
+            price:
+                numberOrNull(
+                    edited.price ??
+                    book.price
+                ),
+
+            year:
+                numberOrNull(
+                    edited.year ??
+                    book.year
+                ),
+
+            pages:
+                numberOrNull(
+                    edited.pages ??
+                    book.pages
+                ),
+
+            rating:
+                numberOrNull(
+                    edited.rating ??
+                    book.rating
+                ),
+
+            language:
+                edited.language ??
+                book.language ??
+                "",
+
+            publisher:
+                edited.publisher ??
+                book.publisher ??
+                "",
+
+            isbn:
+                edited.isbn ??
+                book.isbn ??
+                "",
+
+            series:
+                edited.series ??
+                book.series ??
+                "",
+
+            buy_link:
+                edited.buy_link ??
+                book.buy_link ??
+                "",
+
+            is_deleted:
+                isDeleted,
+
+            updated_at:
+                new Date().toISOString()
+
+        };
+
+
+        const {
+            error
+        } =
+            await migrationDB
+                .from("books")
+                .upsert(
+                    bookData,
+                    {
+                        onConflict:
+                            "book_code"
+                    }
+                );
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        if (isDeleted) {
+
+            log(
+                `🗑️ ${book.title} — видалена`
+            );
+
+        }
+
+        else {
+
+            log(
+                `✔ ${book.title}`
+            );
+
+        }
+
+    }
+
+}
+
+
+// ==========================================
+// ПЕРЕНЕСЕННЯ ВЛАСНИХ КНИГ
+// ==========================================
+
+async function migrateCustomBooks(
+    genreMap
+) {
+
+    log(
+        "📚 Переносимо додані книги..."
+    );
+
+
+    const customBooks =
+        JSON.parse(
+            localStorage.getItem(
+                "myBooks"
+            ) || "[]"
+        );
+
+
+    if (
+        !customBooks.length
+    ) {
+
+        log(
+            "ℹ️ Доданих користувачем книг немає."
+        );
+
+        return;
+
+    }
+
+
+    for (
+        const book
+        of customBooks
+    ) {
+
+        let bookCode =
+            book.id ||
+            book.book_code;
+
+
+        // Якщо ID відсутній —
+        // створюємо новий.
+        if (!bookCode) {
+
+            bookCode =
+                "my-" +
+                Date.now() +
+                "-" +
+                Math.random()
+                    .toString(36)
+                    .substring(2, 8);
+
+        }
+
+
+        const genreCode =
+            book.genre ||
+            book.genreCode ||
+            "";
+
+
+        const bookData = {
+
+            book_code:
+                bookCode,
+
+            title:
+                book.title ||
+                "",
+
+            author:
+                book.author ||
+                "",
+
+            genre_id:
+                genreMap[
+                    genreCode
+                ] || null,
+
+            description:
+                book.description ||
+                "",
+
+            image_url:
+                book.image_url ||
+                book.image ||
+                "",
+
+            price:
+                numberOrNull(
+                    book.price
+                ),
+
+            year:
+                numberOrNull(
+                    book.year
+                ),
+
+            pages:
+                numberOrNull(
+                    book.pages
+                ),
+
+            rating:
+                numberOrNull(
+                    book.rating
+                ),
+
+            language:
+                book.language ||
+                "",
+
+            publisher:
+                book.publisher ||
+                "",
+
+            isbn:
+                book.isbn ||
+                "",
+
+            series:
+                book.series ||
+                "",
+
+            buy_link:
+                book.buy_link ||
+                book.buyLink ||
+                "",
+
+            is_deleted:
+                false,
+
+            updated_at:
+                new Date().toISOString()
+
+        };
+
+
+        const {
+            error
+        } =
+            await migrationDB
+                .from("books")
+                .upsert(
+                    bookData,
+                    {
+                        onConflict:
+                            "book_code"
+                    }
+                );
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        log(
+            `✔ ${book.title}`
+        );
+
+    }
+
+}
+
+
+// ==========================================
+// ЗАПУСК МІГРАЦІЇ
+// ==========================================
+
+async function startMigration() {
+
+    const button =
+        document.getElementById(
+            "start-button"
+        );
+
+
+    // Блокуємо кнопку
+    button.disabled = true;
+
+
+    setStatus(
+        "⏳ Міграція виконується..."
+    );
+
+
+    // Очищаємо старий журнал
+    document.getElementById(
+        "log"
+    ).innerHTML = "";
+
+
+    try {
+
+        // Перевіряємо адміністратора
+        log(
+            "🔐 Перевіряємо права..."
+        );
+
+
+        await checkAdmin();
+
+
+        log(
+            "✔ Права адміністратора підтверджено."
+        );
+
+
+        log("");
+
+
+        // Переносимо жанри
+        const genreMap =
+            await migrateGenres();
+
+
+        log("");
+
+
+        // Переносимо стандартні книги
+        await migrateStandardBooks(
+            genreMap
+        );
+
+
+        log("");
+
+
+        // Переносимо власні книги
+        await migrateCustomBooks(
+            genreMap
+        );
+
+
+        log("");
+
+
+        log(
+            "🎉 МІГРАЦІЮ ЗАВЕРШЕНО!"
+        );
+
+
+        setStatus(
+            "✅ Книги та жанри успішно перенесено."
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка міграції:",
+            error
+        );
+
+
+        log("");
+
+
+        log(
+            "❌ ПОМИЛКА: " +
+            (error.message ||
+            "Невідома помилка")
+        );
+
+
+        setStatus(
+            "❌ Міграцію завершено з помилкою."
+        );
+
+
+        // Дозволяємо повторити
+        button.disabled =
+            false;
+
+    }
+
+}
+
+
+// ==========================================
+// КНОПКА МІГРАЦІЇ
+// ==========================================
+
+document
+    .getElementById(
+        "start-button"
+    )
+    .addEventListener(
+        "click",
+        startMigration
+    );
+
+</script>
+
+</body>
+</html>

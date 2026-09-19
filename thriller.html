@@ -1,0 +1,589 @@
+```html
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Трилери — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button" id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>🔥 Трилери</h1>
+
+    <p class="description">
+        Напруга, небезпека, загадки та історії, від яких важко відірватися
+    </p>
+
+    <div class="books-grid" id="books"></div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+     ========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+<script src="script.js"></script>
+
+
+<script>
+
+    // ==========================================
+    // ЗМІННІ
+    // ==========================================
+
+    const thrillerDB =
+        window.BookWorldSupabase;
+
+    const thrillerCart =
+        {};
+
+
+    // ==========================================
+    // ОТРИМАННЯ КНИГ ТРИЛЕРІВ
+    // ==========================================
+
+    async function getThrillerBooks() {
+
+        try {
+
+            const { data: genre, error: genreError } =
+                await thrillerDB
+                    .from("genres")
+                    .select("id")
+                    .eq("code", "thriller")
+                    .single();
+
+
+            if (genreError) {
+
+                console.error(
+                    "Помилка отримання жанру:",
+                    genreError
+                );
+
+                return [];
+
+            }
+
+
+            const { data: books, error: booksError } =
+                await thrillerDB
+                    .from("books")
+                    .select("*")
+                    .eq("genre_id", genre.id)
+                    .eq("is_deleted", false)
+                    .order("created_at", {
+                        ascending: true
+                    });
+
+
+            if (booksError) {
+
+                console.error(
+                    "Помилка отримання книг:",
+                    booksError
+                );
+
+                return [];
+
+            }
+
+
+            return books || [];
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Помилка Supabase:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // ОТРИМАННЯ КОШИКА
+    // ==========================================
+
+    async function loadThrillerCart() {
+
+        const cart =
+            await BookWorld.getCart();
+
+
+        Object.keys(thrillerCart)
+            .forEach(function(key) {
+
+                delete thrillerCart[key];
+
+            });
+
+
+        Object.keys(cart)
+            .forEach(function(key) {
+
+                thrillerCart[key] =
+                    Number(cart[key]) || 0;
+
+            });
+
+    }
+
+
+    // ==========================================
+    // ВІДОБРАЖЕННЯ КНИГ
+    // ==========================================
+
+    async function renderThrillerBooks() {
+
+        const container =
+            document.getElementById("books");
+
+
+        container.innerHTML =
+            "<p>📚 Завантаження книг...</p>";
+
+
+        const books =
+            await getThrillerBooks();
+
+
+        await loadThrillerCart();
+
+
+        container.innerHTML = "";
+
+
+        if (books.length === 0) {
+
+            container.innerHTML =
+                "<p>У цьому жанрі поки немає книг.</p>";
+
+            return;
+
+        }
+
+
+        books.forEach(function(book) {
+
+            createThrillerCard(
+                book,
+                container
+            );
+
+        });
+
+
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // СТВОРЕННЯ КАРТКИ КНИГИ
+    // ==========================================
+
+    function createThrillerCard(
+        book,
+        container
+    ) {
+
+        const bookId =
+            book.book_code;
+
+
+        const quantity =
+            thrillerCart[bookId] || 0;
+
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "book-card";
+
+
+        card.dataset.bookId =
+            bookId;
+
+
+        // Обкладинка
+        let cover =
+            book.image_url || "📖";
+
+
+        if (
+            typeof cover === "string" &&
+            (
+                cover.startsWith("http://") ||
+                cover.startsWith("https://")
+            )
+        ) {
+
+            cover = `
+                <img
+                    src="${cover}"
+                    alt="${book.title}"
+                >
+            `;
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="book-cover">
+                ${cover}
+            </div>
+
+            <h2>
+                ${book.title}
+            </h2>
+
+            <p>
+                ${book.author || "Автор невідомий"}
+            </p>
+
+            ${
+                book.price != null
+                    ? `
+                        <p class="book-price">
+                            ${book.price} грн
+                        </p>
+                    `
+                    : ""
+            }
+
+            <button
+                class="add-to-cart thriller-add-button"
+                data-book-id="${bookId}"
+            >
+                🛒 Додати до кошика
+                ${
+                    quantity > 0
+                        ? ` (${quantity})`
+                        : ""
+                }
+            </button>
+
+            <div class="thriller-remove-container">
+
+                ${
+                    quantity > 0
+                        ? `
+                            <button
+                                class="remove-from-cart thriller-remove-button"
+                                data-book-id="${bookId}"
+                            >
+                                ➖ Прибрати одну
+                            </button>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+
+        // ==========================================
+        // КЛІК ПО КАРТЦІ
+        // ==========================================
+
+        card.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target.closest(
+                        "button"
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                window.location.href =
+                    "book.html?id=" +
+                    encodeURIComponent(bookId);
+
+            }
+        );
+
+
+        // ==========================================
+        // КНОПКА ДОДАВАННЯ
+        // ==========================================
+
+        const addButton =
+            card.querySelector(
+                ".thriller-add-button"
+            );
+
+
+        addButton.addEventListener(
+            "click",
+            async function(event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+
+                addButton.disabled = true;
+
+
+                const success =
+                    await BookWorld.addToCart(
+                        bookId
+                    );
+
+
+                if (success) {
+
+                    thrillerCart[bookId] =
+                        (
+                            thrillerCart[bookId] || 0
+                        ) + 1;
+
+
+                    updateThrillerCard(
+                        card,
+                        bookId
+                    );
+
+                }
+
+
+                addButton.disabled = false;
+
+            }
+        );
+
+
+        // ==========================================
+        // КНОПКА ПРИБРАТИ
+        // ==========================================
+
+        const removeButton =
+            card.querySelector(
+                ".thriller-remove-button"
+            );
+
+
+        if (removeButton) {
+
+            removeButton.addEventListener(
+                "click",
+                async function(event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    removeButton.disabled =
+                        true;
+
+
+                    const success =
+                        await BookWorld.removeFromCart(
+                            bookId
+                        );
+
+
+                    if (success) {
+
+                        thrillerCart[bookId] =
+                            Math.max(
+                                0,
+                                (
+                                    thrillerCart[bookId] ||
+                                    0
+                                ) - 1
+                            );
+
+
+                        updateThrillerCard(
+                            card,
+                            bookId
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        container.appendChild(card);
+
+    }
+
+
+    // ==========================================
+    // ОНОВЛЕННЯ ТІЛЬКИ ОДНІЄЇ КАРТКИ
+    // ==========================================
+
+    function updateThrillerCard(
+        card,
+        bookId
+    ) {
+
+        const quantity =
+            thrillerCart[bookId] || 0;
+
+
+        const addButton =
+            card.querySelector(
+                ".thriller-add-button"
+            );
+
+
+        const removeContainer =
+            card.querySelector(
+                ".thriller-remove-container"
+            );
+
+
+        // Оновлюємо напис кнопки
+        addButton.innerHTML =
+            "🛒 Додати до кошика" +
+            (
+                quantity > 0
+                    ? " (" + quantity + ")"
+                    : ""
+            );
+
+
+        // Оновлюємо кнопку "Прибрати"
+        if (quantity > 0) {
+
+            removeContainer.innerHTML = `
+
+                <button
+                    class="remove-from-cart thriller-remove-button"
+                    data-book-id="${bookId}"
+                >
+                    ➖ Прибрати одну
+                </button>
+
+            `;
+
+
+            const newRemoveButton =
+                removeContainer.querySelector(
+                    ".thriller-remove-button"
+                );
+
+
+            newRemoveButton.addEventListener(
+                "click",
+                async function(event) {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    newRemoveButton.disabled =
+                        true;
+
+
+                    const success =
+                        await BookWorld.removeFromCart(
+                            bookId
+                        );
+
+
+                    if (success) {
+
+                        thrillerCart[bookId] =
+                            Math.max(
+                                0,
+                                (
+                                    thrillerCart[bookId] ||
+                                    0
+                                ) - 1
+                            );
+
+
+                        updateThrillerCard(
+                            card,
+                            bookId
+                        );
+
+                    }
+
+                }
+            );
+
+        } else {
+
+            removeContainer.innerHTML =
+                "";
+
+        }
+
+    }
+
+
+    // ==========================================
+    // ЗАПУСК
+    // ==========================================
+
+    renderThrillerBooks();
+
+</script>
+
+</body>
+</html>
+```

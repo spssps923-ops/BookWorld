@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Історія — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button" id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>📜 Історія</h1>
+
+    <p class="description">
+        Історичні події, великі постаті, війни та життя минулих епох
+    </p>
+
+    <div class="books-grid" id="books"></div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+     ========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+
+<!-- ==========================================
+     ОСНОВНИЙ СКРИПТ BOOKWORLD
+     ========================================== -->
+
+<script src="script.js"></script>
+
+
+<script>
+
+    // ==========================================
+    // ОТРИМАННЯ ІСТОРИЧНИХ КНИГ
+    // ==========================================
+
+    async function getHistoryBooks() {
+
+        try {
+
+            const dbHistory =
+                window.BookWorldSupabase;
+
+
+            // Знаходимо жанр за кодом
+            const { data: genre, error: genreError } =
+                await dbHistory
+                    .from("genres")
+                    .select("id")
+                    .eq("code", "history")
+                    .single();
+
+
+            if (genreError) {
+
+                console.error(
+                    "Помилка отримання жанру:",
+                    genreError
+                );
+
+                return [];
+
+            }
+
+
+            // Отримуємо книги цього жанру
+            const { data: books, error: booksError } =
+                await dbHistory
+                    .from("books")
+                    .select("*")
+                    .eq("genre_id", genre.id)
+                    .eq("is_deleted", false)
+                    .order("created_at", {
+                        ascending: true
+                    });
+
+
+            if (booksError) {
+
+                console.error(
+                    "Помилка отримання книг:",
+                    booksError
+                );
+
+                return [];
+
+            }
+
+
+            return books || [];
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Помилка Supabase:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // БЕЗПЕЧНИЙ ВИВІД ТЕКСТУ
+    // ==========================================
+
+    function escapeHistoryHTML(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // ==========================================
+    // СТВОРЕННЯ КАРТКИ КНИГИ
+    // ==========================================
+
+    function createHistoryCard(
+        book,
+        quantity
+    ) {
+
+        const bookId =
+            book.book_code;
+
+
+        // ==========================================
+        // ОБКЛАДИНКА
+        // ==========================================
+
+        let cover =
+            book.image_url || "📖";
+
+
+        if (
+            typeof cover === "string" &&
+            (
+                cover.startsWith("http://") ||
+                cover.startsWith("https://")
+            )
+        ) {
+
+            cover = `
+                <img
+                    src="${escapeHistoryHTML(cover)}"
+                    alt="${escapeHistoryHTML(book.title || "Обкладинка книги")}"
+                >
+            `;
+
+        }
+
+
+        // ==========================================
+        // КАРТКА КНИГИ
+        // ==========================================
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "book-card";
+
+
+        card.dataset.bookId =
+            bookId;
+
+
+        card.innerHTML = `
+
+            <div class="book-cover">
+                ${cover}
+            </div>
+
+            <h2>
+                ${escapeHistoryHTML(book.title || "Без назви")}
+            </h2>
+
+            <p>
+                ${escapeHistoryHTML(book.author || "Автор невідомий")}
+            </p>
+
+            ${
+                book.price != null
+                    ? `
+                        <p class="book-price">
+                            ${book.price} грн
+                        </p>
+                    `
+                    : ""
+            }
+
+            <button
+                class="add-to-cart"
+                type="button"
+            >
+                🛒 Додати до кошика
+                ${quantity > 0 ? `(${quantity})` : ""}
+            </button>
+
+            ${
+                quantity > 0
+                    ? `
+                        <button
+                            class="remove-from-cart"
+                            type="button"
+                        >
+                            ➖ Прибрати одну
+                        </button>
+                    `
+                    : ""
+            }
+
+        `;
+
+
+        // ==========================================
+        // КНОПКА ДОДАВАННЯ
+        // ==========================================
+
+        const addButton =
+            card.querySelector(".add-to-cart");
+
+
+        addButton.addEventListener(
+            "click",
+            async function(event) {
+
+                event.stopPropagation();
+
+                await addHistoryBook(
+                    bookId,
+                    card
+                );
+
+            }
+        );
+
+
+        // ==========================================
+        // КНОПКА ПРИБИРАННЯ
+        // ==========================================
+
+        const removeButton =
+            card.querySelector(".remove-from-cart");
+
+
+        if (removeButton) {
+
+            removeButton.addEventListener(
+                "click",
+                async function(event) {
+
+                    event.stopPropagation();
+
+                    await removeHistoryBook(
+                        bookId,
+                        card
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ==========================================
+        // ПЕРЕХІД НА СТОРІНКУ КНИГИ
+        // ==========================================
+
+        card.addEventListener(
+            "click",
+            function() {
+
+                window.location.href =
+                    "book.html?id=" +
+                    encodeURIComponent(bookId);
+
+            }
+        );
+
+
+        return card;
+
+    }
+
+
+    // ==========================================
+    // ПОЧАТКОВЕ ВІДОБРАЖЕННЯ КНИГ
+    // ==========================================
+
+    async function renderHistoryBooks() {
+
+        const container =
+            document.getElementById("books");
+
+
+        container.innerHTML =
+            "<p>📚 Завантаження книг...</p>";
+
+
+        const books =
+            await getHistoryBooks();
+
+
+        const cart =
+            await BookWorld.getCart();
+
+
+        container.innerHTML = "";
+
+
+        // Якщо книг немає
+        if (books.length === 0) {
+
+            container.innerHTML =
+                "<p>У цьому жанрі поки немає книг.</p>";
+
+            BookWorld.updateCartLinks();
+
+            return;
+
+        }
+
+
+        // Створюємо картки
+        books.forEach(function(book) {
+
+            const quantity =
+                cart[book.book_code] || 0;
+
+
+            const card =
+                createHistoryCard(
+                    book,
+                    quantity
+                );
+
+
+            container.appendChild(card);
+
+        });
+
+
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ОНОВЛЕННЯ ТІЛЬКИ ОДНІЄЇ КАРТКИ
+    // ==========================================
+
+    async function updateHistoryCard(
+        id,
+        oldCard
+    ) {
+
+        const dbHistory =
+            window.BookWorldSupabase;
+
+
+        // Отримуємо актуальну книгу
+        const { data: book, error } =
+            await dbHistory
+                .from("books")
+                .select("*")
+                .eq("book_code", id)
+                .eq("is_deleted", false)
+                .single();
+
+
+        if (error || !book) {
+
+            console.error(
+                "Не вдалося оновити картку:",
+                error
+            );
+
+            return;
+
+        }
+
+
+        // Отримуємо актуальний кошик
+        const cart =
+            await BookWorld.getCart();
+
+
+        const quantity =
+            cart[id] || 0;
+
+
+        // Створюємо оновлену картку
+        const newCard =
+            createHistoryCard(
+                book,
+                quantity
+            );
+
+
+        // Замінюємо тільки цю картку
+        oldCard.replaceWith(newCard);
+
+
+        // Оновлюємо кошик у шапці
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ДОДАТИ ДО КОШИКА
+    // ==========================================
+
+    async function addHistoryBook(
+        id,
+        card
+    ) {
+
+        const success =
+            await BookWorld.addToCart(id);
+
+
+        if (success) {
+
+            await updateHistoryCard(
+                id,
+                card
+            );
+
+        }
+
+    }
+
+
+    // ==========================================
+    // ПРИБРАТИ ОДНУ КНИГУ
+    // ==========================================
+
+    async function removeHistoryBook(
+        id,
+        card
+    ) {
+
+        const success =
+            await BookWorld.removeFromCart(id);
+
+
+        if (success) {
+
+            await updateHistoryCard(
+                id,
+                card
+            );
+
+        }
+
+    }
+
+
+    // ==========================================
+    // ЗАПУСК
+    // ==========================================
+
+    renderHistoryBooks();
+
+</script>
+
+</body>
+</html>

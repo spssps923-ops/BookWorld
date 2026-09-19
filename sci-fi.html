@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Наукова фантастика — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button" id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>🚀 Наукова фантастика</h1>
+
+    <p class="description">
+        Космос, технології, майбутнє та неймовірні наукові відкриття
+    </p>
+
+    <div class="books-grid" id="books"></div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+     ========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+
+<!-- ==========================================
+     ОСНОВНИЙ СКРИПТ BOOKWORLD
+     ========================================== -->
+
+<script src="script.js"></script>
+
+
+<script>
+
+    // ==========================================
+    // ОТРИМАННЯ КНИГ НАУКОВОЇ ФАНТАСТИКИ
+    // ==========================================
+
+    async function getSciFiBooks() {
+
+        try {
+
+            const dbSciFi =
+                window.BookWorldSupabase;
+
+
+            // Знаходимо жанр за кодом
+            const { data: genre, error: genreError } =
+                await dbSciFi
+                    .from("genres")
+                    .select("id")
+                    .eq("code", "sci-fi")
+                    .single();
+
+
+            if (genreError) {
+
+                console.error(
+                    "Помилка отримання жанру:",
+                    genreError
+                );
+
+                return [];
+
+            }
+
+
+            // Отримуємо книги цього жанру
+            const { data: books, error: booksError } =
+                await dbSciFi
+                    .from("books")
+                    .select("*")
+                    .eq("genre_id", genre.id)
+                    .eq("is_deleted", false)
+                    .order("created_at", {
+                        ascending: true
+                    });
+
+
+            if (booksError) {
+
+                console.error(
+                    "Помилка отримання книг:",
+                    booksError
+                );
+
+                return [];
+
+            }
+
+
+            return books || [];
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Помилка Supabase:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ==========================================
+    // ЕКРАНУВАННЯ HTML
+    // ==========================================
+
+    function escapeSciFiHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // ==========================================
+    // СТВОРЕННЯ КАРТКИ КНИГИ
+    // ==========================================
+
+    function createSciFiCard(book, quantity) {
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "book-card";
+
+
+        const title =
+            escapeSciFiHTML(book.title);
+
+
+        const author =
+            escapeSciFiHTML(
+                book.author || "Автор невідомий"
+            );
+
+
+        // ==========================================
+        // ОБКЛАДИНКА
+        // ==========================================
+
+        let cover =
+            book.image_url || "📖";
+
+
+        if (
+            typeof cover === "string" &&
+            (
+                cover.startsWith("http://") ||
+                cover.startsWith("https://")
+            )
+        ) {
+
+            cover = `
+                <img
+                    src="${escapeSciFiHTML(cover)}"
+                    alt="${title}"
+                >
+            `;
+
+        }
+
+        else {
+
+            cover =
+                escapeSciFiHTML(cover);
+
+        }
+
+
+        // ==========================================
+        // HTML КАРТКИ
+        // ==========================================
+
+        card.innerHTML = `
+
+            <div class="book-cover">
+                ${cover}
+            </div>
+
+            <h2>
+                ${title}
+            </h2>
+
+            <p>
+                ${author}
+            </p>
+
+            ${
+                book.price != null
+                    ? `
+                        <p class="book-price">
+                            ${book.price} грн
+                        </p>
+                    `
+                    : ""
+            }
+
+            <button
+                type="button"
+                class="add-to-cart"
+            >
+                🛒 Додати до кошика
+                ${quantity > 0 ? `(${quantity})` : ""}
+            </button>
+
+            ${
+                quantity > 0
+                    ? `
+                        <button
+                            type="button"
+                            class="remove-from-cart"
+                        >
+                            ➖ Прибрати одну
+                        </button>
+                    `
+                    : ""
+            }
+
+        `;
+
+
+        // ==========================================
+        // КНОПКА ДОДАВАННЯ
+        // ==========================================
+
+        const addButton =
+            card.querySelector(".add-to-cart");
+
+
+        addButton.addEventListener(
+            "click",
+            function (event) {
+
+                event.stopPropagation();
+
+                addSciFiBook(
+                    book.book_code,
+                    card
+                );
+
+            }
+        );
+
+
+        // ==========================================
+        // КНОПКА ВИДАЛЕННЯ
+        // ==========================================
+
+        const removeButton =
+            card.querySelector(".remove-from-cart");
+
+
+        if (removeButton) {
+
+            removeButton.addEventListener(
+                "click",
+                function (event) {
+
+                    event.stopPropagation();
+
+                    removeSciFiBook(
+                        book.book_code,
+                        card
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ==========================================
+        // ПЕРЕХІД НА СТОРІНКУ КНИГИ
+        // ==========================================
+
+        card.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "book.html?id=" +
+                    encodeURIComponent(
+                        book.book_code
+                    );
+
+            }
+        );
+
+
+        return card;
+
+    }
+
+
+    // ==========================================
+    // ОНОВЛЕННЯ ОДНІЄЇ КАРТКИ
+    // ==========================================
+
+    async function updateSciFiCard(
+        id,
+        oldCard
+    ) {
+
+        const dbSciFi =
+            window.BookWorldSupabase;
+
+
+        // Отримуємо актуальну інформацію про книгу
+        const { data: book, error: bookError } =
+            await dbSciFi
+                .from("books")
+                .select("*")
+                .eq("book_code", id)
+                .eq("is_deleted", false)
+                .single();
+
+
+        if (bookError || !book) {
+
+            console.error(
+                "Не вдалося отримати книгу:",
+                bookError
+            );
+
+            return;
+
+        }
+
+
+        // Отримуємо актуальний кошик
+        const cart =
+            await BookWorld.getCart();
+
+
+        const quantity =
+            cart[id] || 0;
+
+
+        // Створюємо оновлену картку
+        const newCard =
+            createSciFiCard(
+                book,
+                quantity
+            );
+
+
+        // Замінюємо тільки цю картку
+        oldCard.replaceWith(newCard);
+
+
+        // Оновлюємо кількість товарів у кошику
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ПЕРВИННЕ ЗАВАНТАЖЕННЯ КНИГ
+    // ==========================================
+
+    async function renderSciFiBooks() {
+
+        const container =
+            document.getElementById("books");
+
+
+        container.innerHTML =
+            "<p>📚 Завантаження книг...</p>";
+
+
+        const books =
+            await getSciFiBooks();
+
+
+        const cart =
+            await BookWorld.getCart();
+
+
+        container.innerHTML = "";
+
+
+        // Якщо книг немає
+        if (books.length === 0) {
+
+            container.innerHTML =
+                "<p>У цьому жанрі поки немає книг.</p>";
+
+            BookWorld.updateCartLinks();
+
+            return;
+
+        }
+
+
+        // Створюємо картки
+        books.forEach(book => {
+
+            const quantity =
+                cart[book.book_code] || 0;
+
+
+            const card =
+                createSciFiCard(
+                    book,
+                    quantity
+                );
+
+
+            container.appendChild(card);
+
+        });
+
+
+        BookWorld.updateCartLinks();
+
+    }
+
+
+    // ==========================================
+    // ДОДАТИ ДО КОШИКА
+    // ==========================================
+
+    async function addSciFiBook(
+        id,
+        card
+    ) {
+
+        const success =
+            await BookWorld.addToCart(id);
+
+
+        if (!success) {
+            return;
+        }
+
+
+        // Оновлюємо тільки натиснуту картку
+        await updateSciFiCard(
+            id,
+            card
+        );
+
+    }
+
+
+    // ==========================================
+    // ПРИБРАТИ З КОШИКА
+    // ==========================================
+
+    async function removeSciFiBook(
+        id,
+        card
+    ) {
+
+        const success =
+            await BookWorld.removeFromCart(id);
+
+
+        if (!success) {
+            return;
+        }
+
+
+        // Оновлюємо тільки натиснуту картку
+        await updateSciFiCard(
+            id,
+            card
+        );
+
+    }
+
+
+    // ==========================================
+    // ЗАПУСК
+    // ==========================================
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            BookWorld.updateCartLinks();
+
+            renderSciFiBooks();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>

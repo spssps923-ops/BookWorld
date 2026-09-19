@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Пригоди — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button" id="cart-link">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>🗺️ Пригоди</h1>
+
+    <p class="description">
+        Подорожі, небезпечні випробування, пошуки скарбів та неймовірні пригоди
+    </p>
+
+    <div class="books-grid" id="books"></div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+
+<!-- ==========================================
+     ОСНОВНИЙ СКРИПТ BOOKWORLD
+========================================== -->
+
+<script src="script.js"></script>
+
+
+<script>
+
+/* ==========================================
+   ОТРИМАННЯ КНИГ ПРИГОД
+========================================== */
+
+async function getAdventureBooks() {
+
+    try {
+
+        const dbAdventure =
+            window.BookWorldSupabase;
+
+
+        /* ==========================================
+           ЗНАХОДИМО ЖАНР
+        ========================================== */
+
+        const {
+            data: genre,
+            error: genreError
+        } = await dbAdventure
+            .from("genres")
+            .select("id")
+            .eq("code", "adventure")
+            .single();
+
+
+        if (genreError) {
+
+            console.error(
+                "Помилка отримання жанру:",
+                genreError
+            );
+
+            return [];
+
+        }
+
+
+        /* ==========================================
+           ОТРИМУЄМО КНИГИ
+        ========================================== */
+
+        const {
+            data: books,
+            error: booksError
+        } = await dbAdventure
+            .from("books")
+            .select("*")
+            .eq("genre_id", genre.id)
+            .eq("is_deleted", false)
+            .order("created_at", {
+                ascending: true
+            });
+
+
+        if (booksError) {
+
+            console.error(
+                "Помилка отримання книг:",
+                booksError
+            );
+
+            return [];
+
+        }
+
+
+        return books || [];
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка Supabase:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+/* ==========================================
+   СТВОРЕННЯ КАРТКИ КНИГИ
+========================================== */
+
+function createAdventureCard(book, quantity) {
+
+    const card =
+        document.createElement("div");
+
+
+    card.className =
+        "book-card";
+
+
+    /* ==========================================
+       ОБКЛАДИНКА
+    ========================================== */
+
+    let cover =
+        book.image_url || "📖";
+
+
+    if (
+        typeof cover === "string" &&
+        (
+            cover.startsWith("http://") ||
+            cover.startsWith("https://")
+        )
+    ) {
+
+        cover = `
+            <img
+                src="${cover}"
+                alt="${escapeAdventureHTML(book.title)}"
+            >
+        `;
+
+    }
+
+
+    /* ==========================================
+       ВМІСТ КАРТКИ
+    ========================================== */
+
+    card.innerHTML = `
+
+        <div class="book-cover">
+            ${cover}
+        </div>
+
+        <h2>
+            ${escapeAdventureHTML(book.title)}
+        </h2>
+
+        <p>
+            ${escapeAdventureHTML(
+                book.author || "Автор невідомий"
+            )}
+        </p>
+
+        ${
+            book.price != null
+                ? `
+                    <p class="book-price">
+                        ${book.price} грн
+                    </p>
+                `
+                : ""
+        }
+
+        <button
+            class="add-to-cart adventure-add-button"
+            type="button"
+        >
+            🛒 Додати до кошика
+            ${quantity > 0 ? `(${quantity})` : ""}
+        </button>
+
+        ${
+            quantity > 0
+                ? `
+                    <button
+                        class="remove-from-cart adventure-remove-button"
+                        type="button"
+                    >
+                        ➖ Прибрати одну
+                    </button>
+                `
+                : ""
+        }
+
+    `;
+
+
+    /* ==========================================
+       ПЕРЕХІД НА СТОРІНКУ КНИГИ
+    ========================================== */
+
+    card.addEventListener("click", function () {
+
+        window.location.href =
+            "book.html?id=" +
+            encodeURIComponent(
+                book.book_code
+            );
+
+    });
+
+
+    /* ==========================================
+       КНОПКА ДОДАВАННЯ
+    ========================================== */
+
+    const addButton =
+        card.querySelector(".adventure-add-button");
+
+
+    addButton.addEventListener(
+        "click",
+        async function (event) {
+
+            event.stopPropagation();
+
+            await addAdventureBook(
+                book.book_code,
+                card
+            );
+
+        }
+    );
+
+
+    /* ==========================================
+       КНОПКА ВИДАЛЕННЯ
+    ========================================== */
+
+    const removeButton =
+        card.querySelector(
+            ".adventure-remove-button"
+        );
+
+
+    if (removeButton) {
+
+        removeButton.addEventListener(
+            "click",
+            async function (event) {
+
+                event.stopPropagation();
+
+                await removeAdventureBook(
+                    book.book_code,
+                    card
+                );
+
+            }
+        );
+
+    }
+
+
+    return card;
+
+}
+
+
+/* ==========================================
+   БЕЗПЕЧНИЙ ТЕКСТ
+========================================== */
+
+function escapeAdventureHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ==========================================
+   ОНОВЛЕННЯ ОДНІЄЇ КАРТКИ
+========================================== */
+
+async function updateAdventureCard(
+    id,
+    card
+) {
+
+    const cart =
+        await BookWorld.getCart();
+
+
+    const quantity =
+        cart[id] || 0;
+
+
+    const dbAdventure =
+        window.BookWorldSupabase;
+
+
+    const {
+        data: book,
+        error
+    } = await dbAdventure
+        .from("books")
+        .select("*")
+        .eq("book_code", id)
+        .single();
+
+
+    if (error || !book) {
+
+        console.error(
+            "Не вдалося отримати книгу:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    const newCard =
+        createAdventureCard(
+            book,
+            quantity
+        );
+
+
+    card.replaceWith(newCard);
+
+
+    BookWorld.updateCartLinks();
+
+}
+
+
+/* ==========================================
+   ПЕРВИННЕ ВІДОБРАЖЕННЯ
+========================================== */
+
+async function renderAdventureBooks() {
+
+    const container =
+        document.getElementById("books");
+
+
+    container.innerHTML =
+        "<p>📚 Завантаження книг...</p>";
+
+
+    const books =
+        await getAdventureBooks();
+
+
+    const cart =
+        await BookWorld.getCart();
+
+
+    container.innerHTML = "";
+
+
+    /* ==========================================
+       ЯКЩО КНИГ НЕМАЄ
+    ========================================== */
+
+    if (books.length === 0) {
+
+        container.innerHTML =
+            "<p>У цьому жанрі поки немає книг.</p>";
+
+        BookWorld.updateCartLinks();
+
+        return;
+
+    }
+
+
+    /* ==========================================
+       СТВОРЮЄМО КАРТКИ
+    ========================================== */
+
+    books.forEach(function (book) {
+
+        const quantity =
+            cart[book.book_code] || 0;
+
+
+        const card =
+            createAdventureCard(
+                book,
+                quantity
+            );
+
+
+        container.appendChild(card);
+
+    });
+
+
+    BookWorld.updateCartLinks();
+
+}
+
+
+/* ==========================================
+   ДОДАТИ ДО КОШИКА
+========================================== */
+
+async function addAdventureBook(
+    id,
+    card
+) {
+
+    const button =
+        card.querySelector(
+            ".adventure-add-button"
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+
+    }
+
+
+    try {
+
+        await BookWorld.addToCart(id);
+
+
+        /*
+         * ВАЖЛИВО:
+         * НЕ викликаємо renderAdventureBooks().
+         *
+         * Оновлюємо тільки одну картку.
+         */
+
+        await updateAdventureCard(
+            id,
+            card
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка додавання:",
+            error
+        );
+
+        showToast(
+            "Не вдалося додати книгу.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   ПРИБРАТИ З КОШИКА
+========================================== */
+
+async function removeAdventureBook(
+    id,
+    card
+) {
+
+    const button =
+        card.querySelector(
+            ".adventure-remove-button"
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+
+    }
+
+
+    try {
+
+        await BookWorld.removeFromCart(id);
+
+
+        /*
+         * Знову оновлюємо тільки цю картку.
+         */
+
+        await updateAdventureCard(
+            id,
+            card
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка видалення:",
+            error
+        );
+
+        showToast(
+            "Не вдалося прибрати книгу.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   ЗАПУСК
+========================================== */
+
+renderAdventureBooks();
+
+</script>
+
+</body>
+
+</html>

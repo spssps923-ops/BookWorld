@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Додати книгу — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <div>
+
+        <a href="index.html" class="cart-button">
+            🏠 Головна
+        </a>
+
+        <a href="cart.html" class="cart-button">
+            🛒 Кошик
+        </a>
+
+    </div>
+
+</header>
+
+
+<main>
+
+    <h1>➕ Додати книгу</h1>
+
+    <p class="description">
+        Додай власну книгу до BookWorld
+    </p>
+
+
+    <div class="empty-cart">
+
+        <form id="book-form">
+
+            <!-- Назва -->
+            <label for="title">
+                Назва книги
+            </label>
+
+            <input
+                type="text"
+                id="title"
+                required
+                placeholder="Наприклад: Четверте крило"
+            >
+
+
+            <!-- Автор -->
+            <label for="author">
+                Автор
+            </label>
+
+            <input
+                type="text"
+                id="author"
+                required
+                placeholder="Наприклад: Ребекка Яррос"
+            >
+
+
+            <!-- Жанр -->
+            <label for="genre">
+                Жанр
+            </label>
+
+            <select id="genre" required>
+
+                <option value="">
+                    Обери жанр
+                </option>
+
+                <option value="fantasy">
+                    Фентезі
+                </option>
+
+                <option value="sci-fi">
+                    Фантастика
+                </option>
+
+                <option value="detective">
+                    Детектив
+                </option>
+
+                <option value="romance">
+                    Роман
+                </option>
+
+                <option value="horror">
+                    Жахи
+                </option>
+
+                <option value="adventure">
+                    Пригоди
+                </option>
+
+                <option value="history">
+                    Історичні
+                </option>
+
+                <option value="classic">
+                    Класика
+                </option>
+
+                <option value="thriller">
+                    Трилери
+                </option>
+
+            </select>
+
+
+            <!-- Опис -->
+            <label for="description">
+                Опис
+            </label>
+
+            <textarea
+                id="description"
+                rows="5"
+                placeholder="Напиши короткий опис книги..."
+            ></textarea>
+
+
+            <!-- Обкладинка -->
+            <label for="image">
+                Посилання на обкладинку
+            </label>
+
+            <input
+                type="url"
+                id="image"
+                placeholder="https://..."
+            >
+
+
+            <!-- Кнопка -->
+            <button
+                type="submit"
+                class="add-to-cart"
+                id="submit-button"
+            >
+                ➕ Додати книгу
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+
+<footer>
+    BookWorld © 2026
+</footer>
+
+
+<!-- ==========================================
+     ПІДКЛЮЧЕННЯ SUPABASE
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase.js"></script>
+
+
+<script>
+
+/* ==========================================
+   ПІДКЛЮЧЕННЯ ДО SUPABASE
+========================================== */
+
+const addBookDB = window.BookWorldSupabase;
+
+
+/* ==========================================
+   ФОРМА
+========================================== */
+
+const form =
+    document.getElementById("book-form");
+
+const submitButton =
+    document.getElementById("submit-button");
+
+
+/* ==========================================
+   ДОДАВАННЯ КНИГИ
+========================================== */
+
+form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+
+    /* ==========================================
+       БЛОКУЄМО КНОПКУ
+    ========================================== */
+
+    submitButton.disabled = true;
+
+    submitButton.textContent =
+        "⏳ Додаємо книгу...";
+
+
+    try {
+
+        /* ==========================================
+           ОТРИМУЄМО ДАНІ
+        ========================================== */
+
+        const title =
+            document
+                .getElementById("title")
+                .value
+                .trim();
+
+
+        const author =
+            document
+                .getElementById("author")
+                .value
+                .trim();
+
+
+        const genreCode =
+            document
+                .getElementById("genre")
+                .value;
+
+
+        const description =
+            document
+                .getElementById("description")
+                .value
+                .trim();
+
+
+        const image =
+            document
+                .getElementById("image")
+                .value
+                .trim();
+
+
+        /* ==========================================
+           ПЕРЕВІРКА
+        ========================================== */
+
+        if (!title || !author || !genreCode) {
+
+            showToast(
+                "Заповни всі обов'язкові поля.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /* ==========================================
+           ЗНАХОДИМО ЖАНР У SUPABASE
+        ========================================== */
+
+        const {
+            data: genre,
+            error: genreError
+        } = await addBookDB
+            .from("genres")
+            .select("id")
+            .eq("code", genreCode)
+            .single();
+
+
+        if (genreError || !genre) {
+
+            console.error(
+                "Помилка пошуку жанру:",
+                genreError
+            );
+
+            showToast(
+                "Не вдалося знайти цей жанр.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /* ==========================================
+           СТВОРЮЄМО УНІКАЛЬНИЙ КОД КНИГИ
+        ========================================== */
+
+        const bookCode =
+            "my-" +
+            Date.now() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 8);
+
+
+        /* ==========================================
+           ДОДАЄМО КНИГУ В SUPABASE
+        ========================================== */
+
+        const {
+            error: insertError
+        } = await addBookDB
+            .from("books")
+            .insert({
+
+                book_code:
+                    bookCode,
+
+                title:
+                    title,
+
+                author:
+                    author,
+
+                genre_id:
+                    genre.id,
+
+                description:
+                    description,
+
+                image_url:
+                    image || null,
+
+                price:
+                    null,
+
+                year:
+                    null,
+
+                pages:
+                    null,
+
+                language:
+                    null,
+
+                publisher:
+                    null,
+
+                isbn:
+                    null,
+
+                rating:
+                    null,
+
+                series:
+                    null,
+
+                buy_link:
+                    null,
+
+                is_deleted:
+                    false
+
+            });
+
+
+        /* ==========================================
+           ПЕРЕВІРКА ПОМИЛКИ
+        ========================================== */
+
+        if (insertError) {
+
+            console.error(
+                "Помилка додавання книги:",
+                insertError
+            );
+
+            showToast(
+                "Не вдалося додати книгу.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /* ==========================================
+           УСПІШНЕ ДОДАВАННЯ
+        ========================================== */
+
+        showToast(
+            `Книгу «${title}» додано! 📚`,
+            "success"
+        );
+
+
+        /* ==========================================
+           ОЧИЩАЄМО ФОРМУ
+        ========================================== */
+
+        form.reset();
+
+
+    } catch (error) {
+
+        console.error(
+            "Помилка:",
+            error
+        );
+
+        showToast(
+            "Сталася помилка. Спробуй ще раз.",
+            "error"
+        );
+
+
+    } finally {
+
+        /* ==========================================
+           ПОВЕРТАЄМО КНОПКУ
+        ========================================== */
+
+        submitButton.disabled = false;
+
+        submitButton.textContent =
+            "➕ Додати книгу";
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>

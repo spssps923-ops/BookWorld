@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="uk">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Резервна копія — BookWorld</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+.backup-box{
+    max-width:700px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:18px;
+    box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
+
+.backup-box h1{
+    text-align:center;
+    margin-top:0;
+}
+
+.backup-buttons{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:25px;
+}
+
+.backup-button{
+    border:none;
+    border-radius:10px;
+    padding:13px 20px;
+    color:white;
+    font-weight:bold;
+    font-size:15px;
+    cursor:pointer;
+}
+
+.export-button{
+    background:linear-gradient(135deg,#6a11cb,#e83e8c);
+}
+
+.import-button{
+    background:#333;
+}
+
+input[type="file"]{
+    display:none;
+}
+
+.backup-info{
+    margin-top:25px;
+    padding:15px;
+    background:#f7f3ff;
+    border-radius:10px;
+    line-height:1.6;
+    color:#555;
+}
+</style>
+
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="logo">📚 BookWorld</div>
+
+<nav class="navigation">
+<a href="index.html">🏠 Головна</a>
+<a href="admin.html">⚙️ Адмінка</a>
+<a href="cart.html">🛒 Кошик</a>
+</nav>
+
+</header>
+
+<main>
+
+<div class="backup-box">
+
+<h1>💾 Резервна копія BookWorld</h1>
+
+<div class="backup-info">
+<strong>Експорт</strong> створить файл із даними твого сайту.
+<br><br>
+<strong>Імпорт</strong> відновить ці дані на іншому ПК.
+<br><br>
+⚠️ Перед імпортом на новому ПК його поточні дані BookWorld будуть замінені даними з резервної копії.
+</div>
+
+<div class="backup-buttons">
+
+<button
+class="backup-button export-button"
+onclick="exportBackup()">
+⬇️ Створити резервну копію </button>
+
+<label class="backup-button import-button">
+⬆️ Відновити резервну копію
+<input
+type="file"
+accept=".json"
+onchange="importBackup(event)">
+</label>
+
+</div>
+
+</div>
+
+</main>
+
+<script>
+
+const BACKUP_KEYS = [
+    "myBooks",
+    "bookEdits",
+    "customGenres",
+    "bookCart",
+    "adminBookGenreFilter",
+    "adminSectionStates"
+];
+
+function exportBackup(){
+
+    const backup = {
+        version: 1,
+        createdAt: new Date().toISOString(),
+        data: {}
+    };
+
+    BACKUP_KEYS.forEach(key => {
+
+        const value = localStorage.getItem(key);
+
+        if(value !== null){
+            backup.data[key] = value;
+        }
+
+    });
+
+    const json = JSON.stringify(backup, null, 2);
+
+    const blob = new Blob(
+        [json],
+        {type:"application/json"}
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "BookWorld_backup.json";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    alert("Резервну копію створено! 📚💾");
+}
+
+
+function importBackup(event){
+
+    const file = event.target.files[0];
+
+    if(!file)return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(){
+
+        try{
+
+            const backup = JSON.parse(reader.result);
+
+            if(
+                !backup ||
+                !backup.data ||
+                typeof backup.data !== "object"
+            ){
+                throw new Error("Неправильний файл резервної копії.");
+            }
+
+            BACKUP_KEYS.forEach(key => {
+                localStorage.removeItem(key);
+            });
+
+            Object.entries(backup.data).forEach(
+                ([key,value]) => {
+
+                    if(BACKUP_KEYS.includes(key)){
+                        localStorage.setItem(key,value);
+                    }
+
+                }
+            );
+
+            alert(
+                "Резервну копію успішно відновлено! 📚✨\n\n" +
+                "Перезавантаж сторінку."
+            );
+
+        }catch(error){
+
+            alert(
+                "Не вдалося відновити резервну копію.\n\n" +
+                error.message
+            );
+
+        }
+
+    };
+
+    reader.readAsText(file);
+
+}
+
+</script>
+
+</body>
+</html>
