@@ -23,7 +23,6 @@ function(message, type = "success") {
         oldToast.remove();
     }
 
-
     const icons = {
         success: "✓",
         error: "✕",
@@ -31,14 +30,11 @@ function(message, type = "success") {
         info: "i"
     };
 
-
     const toast =
         document.createElement("div");
 
-
     toast.className =
         "bw-toast " + type;
-
 
     toast.innerHTML =
         '<div class="bw-toast-icon">' +
@@ -49,14 +45,11 @@ function(message, type = "success") {
             message +
         '</div>';
 
-
     document.body.appendChild(toast);
-
 
     setTimeout(function() {
 
         toast.classList.add("hide");
-
 
         setTimeout(function() {
 
@@ -86,10 +79,8 @@ function(
         const overlay =
             document.createElement("div");
 
-
         overlay.className =
             "bw-popup-overlay";
-
 
         overlay.innerHTML =
 
@@ -119,17 +110,13 @@ function(
 
             '</div>';
 
-
         document.body.appendChild(overlay);
-
 
         const cancelButton =
             overlay.querySelector(".cancel");
 
-
         const confirmButton =
             overlay.querySelector(".confirm");
-
 
         cancelButton.addEventListener(
             "click",
@@ -141,7 +128,6 @@ function(
 
             }
         );
-
 
         confirmButton.addEventListener(
             "click",
@@ -174,10 +160,8 @@ function(
         const overlay =
             document.createElement("div");
 
-
         overlay.className =
             "bw-popup-overlay";
-
 
         overlay.innerHTML =
 
@@ -210,23 +194,18 @@ function(
 
             '</div>';
 
-
         document.body.appendChild(overlay);
-
 
         const input =
             overlay.querySelector(
                 ".bw-popup-input"
             );
 
-
         const cancelButton =
             overlay.querySelector(".cancel");
 
-
         const confirmButton =
             overlay.querySelector(".confirm");
-
 
         function close(value) {
 
@@ -235,7 +214,6 @@ function(
             resolve(value);
 
         }
-
 
         cancelButton.addEventListener(
             "click",
@@ -246,7 +224,6 @@ function(
             }
         );
 
-
         confirmButton.addEventListener(
             "click",
             function() {
@@ -256,7 +233,6 @@ function(
             }
         );
 
-
         input.addEventListener(
             "keydown",
             function(event) {
@@ -265,14 +241,12 @@ function(
                     close(input.value);
                 }
 
-
                 if (event.key === "Escape") {
                     close(null);
                 }
 
             }
         );
-
 
         setTimeout(function() {
 
@@ -296,12 +270,10 @@ async function() {
         return null;
     }
 
-
     try {
 
         const result =
             await db.auth.getUser();
-
 
         if (result.error) {
 
@@ -312,7 +284,6 @@ async function() {
             return null;
 
         }
-
 
         return result.data.user || null;
 
@@ -339,14 +310,12 @@ async function() {
     const user =
         await window.BookWorld.getCurrentUser();
 
-
     if (!user) {
 
         window.BookWorld.showToast(
             "Спочатку увійдіть в акаунт.",
             "warning"
         );
-
 
         window.location.href =
             "login.html";
@@ -355,7 +324,6 @@ async function() {
 
     }
 
-
     const result =
         await db
             .from("profiles")
@@ -363,13 +331,11 @@ async function() {
             .eq("id", user.id)
             .maybeSingle();
 
-
     if (result.error) {
 
         console.error(
             result.error
         );
-
 
         window.BookWorld.showToast(
             "Не вдалося перевірити права доступу.",
@@ -379,7 +345,6 @@ async function() {
         return;
 
     }
-
 
     if (
         result.data &&
@@ -414,7 +379,6 @@ async function(bookCode) {
         return null;
     }
 
-
     const result =
         await db
             .from("books")
@@ -422,7 +386,6 @@ async function(bookCode) {
             .eq("book_code", bookCode)
             .eq("is_deleted", false)
             .maybeSingle();
-
 
     if (result.error) {
 
@@ -434,7 +397,6 @@ async function(bookCode) {
         return null;
 
     }
-
 
     return result.data
         ? result.data.id
@@ -453,11 +415,9 @@ async function() {
     const user =
         await window.BookWorld.getCurrentUser();
 
-
     if (!user) {
         return [];
     }
-
 
     const result =
         await db
@@ -466,7 +426,6 @@ async function() {
                 "id, user_id, book_id, quantity, books(*)"
             )
             .eq("user_id", user.id);
-
 
     if (result.error) {
 
@@ -478,7 +437,6 @@ async function() {
         return [];
 
     }
-
 
     return (result.data || [])
         .filter(function(item) {
@@ -503,9 +461,7 @@ async function() {
     const items =
         await window.BookWorld.getCartItems();
 
-
     const cart = {};
-
 
     items.forEach(function(item) {
 
@@ -520,7 +476,6 @@ async function() {
         }
 
     });
-
 
     return cart;
 
@@ -539,7 +494,6 @@ async function(bookCode) {
         const user =
             await window.BookWorld.getCurrentUser();
 
-
         if (!user) {
 
             window.BookWorld.showToast(
@@ -547,21 +501,17 @@ async function(bookCode) {
                 "warning"
             );
 
-
             window.location.href =
                 "login.html";
-
 
             return false;
 
         }
 
-
         const bookUUID =
             await window.BookWorld.getBookUUID(
                 bookCode
             );
-
 
         if (!bookUUID) {
 
@@ -574,7 +524,6 @@ async function(bookCode) {
 
         }
 
-
         const existingResult =
             await db
                 .from("cart_items")
@@ -583,27 +532,21 @@ async function(bookCode) {
                 .eq("book_id", bookUUID)
                 .maybeSingle();
 
-
         if (existingResult.error) {
 
             console.error(
                 existingResult.error
             );
 
-
             window.BookWorld.showToast(
                 "Не вдалося перевірити кошик.",
                 "error"
             );
 
-
             return false;
 
         }
 
-
-        // Якщо книга вже є у кошику —
-        // збільшуємо кількість
         if (existingResult.data) {
 
             const updateResult =
@@ -624,7 +567,6 @@ async function(bookCode) {
                         user.id
                     );
 
-
             if (updateResult.error) {
 
                 console.error(
@@ -637,8 +579,6 @@ async function(bookCode) {
 
         }
 
-        // Якщо книги ще немає —
-        // створюємо новий запис
         else {
 
             const insertResult =
@@ -649,7 +589,6 @@ async function(bookCode) {
                         book_id: bookUUID,
                         quantity: 1
                     });
-
 
             if (insertResult.error) {
 
@@ -663,12 +602,10 @@ async function(bookCode) {
 
         }
 
-
         window.BookWorld.showToast(
             "Книгу додано до кошика! 🛒",
             "success"
         );
-
 
         return true;
 
@@ -678,12 +615,10 @@ async function(bookCode) {
 
         console.error(error);
 
-
         window.BookWorld.showToast(
             "Сталася помилка.",
             "error"
         );
-
 
         return false;
 
@@ -704,22 +639,18 @@ async function(bookCode) {
         const user =
             await window.BookWorld.getCurrentUser();
 
-
         if (!user) {
             return false;
         }
-
 
         const bookUUID =
             await window.BookWorld.getBookUUID(
                 bookCode
             );
 
-
         if (!bookUUID) {
             return false;
         }
-
 
         const result =
             await db
@@ -728,7 +659,6 @@ async function(bookCode) {
                 .eq("user_id", user.id)
                 .eq("book_id", bookUUID)
                 .maybeSingle();
-
 
         if (result.error) {
 
@@ -739,7 +669,6 @@ async function(bookCode) {
             return false;
 
         }
-
 
         if (!result.data) {
 
@@ -752,13 +681,9 @@ async function(bookCode) {
 
         }
 
-
         const newQuantity =
             Number(result.data.quantity) - 1;
 
-
-        // Якщо залишилася нульова кількість —
-        // видаляємо запис
         if (newQuantity <= 0) {
 
             const deleteResult =
@@ -774,7 +699,6 @@ async function(bookCode) {
                         user.id
                     );
 
-
             if (deleteResult.error) {
 
                 console.error(
@@ -787,7 +711,6 @@ async function(bookCode) {
 
         }
 
-        // Інакше просто зменшуємо кількість
         else {
 
             const updateResult =
@@ -805,7 +728,6 @@ async function(bookCode) {
                         user.id
                     );
 
-
             if (updateResult.error) {
 
                 console.error(
@@ -818,12 +740,10 @@ async function(bookCode) {
 
         }
 
-
         window.BookWorld.showToast(
             "Книгу прибрано з кошика.",
             "info"
         );
-
 
         return true;
 
@@ -850,11 +770,9 @@ async function() {
     const user =
         await window.BookWorld.getCurrentUser();
 
-
     if (!user) {
         return false;
     }
-
 
     const result =
         await db
@@ -865,30 +783,25 @@ async function() {
                 user.id
             );
 
-
     if (result.error) {
 
         console.error(
             result.error
         );
 
-
         window.BookWorld.showToast(
             "Не вдалося очистити кошик.",
             "error"
         );
 
-
         return false;
 
     }
-
 
     window.BookWorld.showToast(
         "Кошик очищено.",
         "info"
     );
-
 
     return true;
 
@@ -905,9 +818,7 @@ async function() {
     const items =
         await window.BookWorld.getCartItems();
 
-
     let count = 0;
-
 
     items.forEach(function(item) {
 
@@ -915,7 +826,6 @@ async function() {
             Number(item.quantity) || 0;
 
     });
-
 
     return count;
 
@@ -933,7 +843,6 @@ function() {
         document.querySelectorAll(
             'a[href="cart.html"], #cart-link'
         );
-
 
     links.forEach(function(link) {
 
@@ -954,11 +863,9 @@ function(value) {
 
     const result = {};
 
-
     if (!value) {
         return result;
     }
-
 
     value.split("|")
         .forEach(function(item) {
@@ -966,19 +873,15 @@ function(value) {
             const parts =
                 item.split(":");
 
-
             if (parts.length !== 2) {
                 return;
             }
 
-
             const id =
                 parts[0];
 
-
             const quantity =
                 Number(parts[1]);
-
 
             if (
                 id &&
@@ -993,8 +896,345 @@ function(value) {
 
         });
 
-
     return result;
+
+};
+
+
+// ==========================================
+// СИСТЕМА ЖАНРІВ
+// ==========================================
+
+// Емодзі стандартних жанрів
+const genreEmojis = {
+
+    fantasy: "🐉",
+
+    "sci-fi": "🚀",
+
+    detective: "🔎",
+
+    romance: "❤️",
+
+    horror: "👻",
+
+    adventure: "🗺️",
+
+    history: "🏰",
+
+    classic: "📜",
+
+    thriller: "🔥"
+
+};
+
+
+// Екранування HTML
+function escapeGenreHTML(text) {
+
+    if (
+        text === null ||
+        text === undefined
+    ) {
+        return "";
+    }
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// ==========================================
+// СТВОРЕННЯ МЕНЮ ЖАНРІВ
+// ==========================================
+
+window.BookWorld.loadGenreMenu =
+async function() {
+
+    if (!db) {
+        return;
+    }
+
+    // Шукаємо навігацію
+    const navigation =
+        document.querySelector(".navigation");
+
+    if (!navigation) {
+        return;
+    }
+
+
+    try {
+
+        // Отримуємо всі жанри із Supabase
+        const result =
+            await db
+                .from("genres")
+                .select("*")
+                .order("name");
+
+
+        if (result.error) {
+
+            console.error(
+                "Помилка завантаження жанрів:",
+                result.error
+            );
+
+            return;
+
+        }
+
+
+        const genres =
+            result.data || [];
+
+
+        // Зберігаємо старі елементи,
+        // які не є жанрами
+        const existingLinks =
+            Array.from(
+                navigation.querySelectorAll("a")
+            );
+
+
+        let homeLink = null;
+        let cartLink = null;
+
+
+        existingLinks.forEach(function(link) {
+
+            const href =
+                link.getAttribute("href");
+
+
+            if (href === "index.html") {
+                homeLink = link;
+            }
+
+            if (
+                href === "cart.html" ||
+                link.id === "cart-link"
+            ) {
+                cartLink = link;
+            }
+
+        });
+
+
+        // Повністю очищаємо навігацію
+        navigation.innerHTML = "";
+
+
+        // ==========================================
+        // ГОЛОВНА
+        // ==========================================
+
+        if (homeLink) {
+
+            const newHome =
+                document.createElement("a");
+
+            newHome.href =
+                "index.html";
+
+            newHome.textContent =
+                "🏠 Головна";
+
+            navigation.appendChild(
+                newHome
+            );
+
+        }
+
+
+        // ==========================================
+        // КНОПКА ЖАНРИ
+        // ==========================================
+
+        const genreWrapper =
+            document.createElement("div");
+
+        genreWrapper.className =
+            "genre-menu";
+
+
+        const genreButton =
+            document.createElement("button");
+
+        genreButton.type =
+            "button";
+
+        genreButton.className =
+            "genre-menu-button";
+
+        genreButton.innerHTML =
+            "📚 Жанри <span>▼</span>";
+
+
+        const dropdown =
+            document.createElement("div");
+
+        dropdown.className =
+            "genre-dropdown";
+
+
+        // ==========================================
+        // ДОДАЄМО ЖАНРИ
+        // ==========================================
+
+        if (genres.length === 0) {
+
+            const empty =
+                document.createElement("div");
+
+            empty.className =
+                "genre-empty";
+
+            empty.textContent =
+                "Жанрів поки немає";
+
+            dropdown.appendChild(
+                empty
+            );
+
+        }
+
+
+        genres.forEach(function(genre) {
+
+            const item =
+                document.createElement("a");
+
+
+            item.href =
+                "genre.html?code=" +
+                encodeURIComponent(
+                    genre.code
+                );
+
+
+            const emoji =
+                genreEmojis[
+                    genre.code
+                ] || "📚";
+
+
+            item.innerHTML =
+                `<span>${emoji}</span> ` +
+                `${escapeGenreHTML(
+                    genre.name
+                )}`;
+
+
+            dropdown.appendChild(
+                item
+            );
+
+        });
+
+
+        genreWrapper.appendChild(
+            genreButton
+        );
+
+        genreWrapper.appendChild(
+            dropdown
+        );
+
+
+        navigation.appendChild(
+            genreWrapper
+        );
+
+
+        // ==========================================
+        // КОШИК
+        // ==========================================
+
+        if (cartLink) {
+
+            const newCart =
+                document.createElement("a");
+
+            newCart.href =
+                "cart.html";
+
+            newCart.id =
+                "cart-link";
+
+            newCart.className =
+                "cart-menu-link";
+
+            newCart.textContent =
+                "🛒 Кошик";
+
+            navigation.appendChild(
+                newCart
+            );
+
+        }
+
+
+        // ==========================================
+        // ВІДКРИТТЯ МЕНЮ
+        // ==========================================
+
+        genreButton.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+                genreWrapper.classList.toggle(
+                    "open"
+                );
+
+            }
+        );
+
+
+        // Закриваємо меню при натисканні
+        // в іншому місці сторінки
+        document.addEventListener(
+            "click",
+            function() {
+
+                genreWrapper.classList.remove(
+                    "open"
+                );
+
+            }
+        );
+
+
+        // Не закриваємо меню при натисканні
+        // всередині нього
+        dropdown.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+            }
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Помилка меню жанрів:",
+            error
+        );
+
+    }
 
 };
 
@@ -1024,8 +1264,11 @@ document.addEventListener(
     "DOMContentLoaded",
     function() {
 
-        // Оновлюємо посилання кошика
+        // Оновлюємо кошик
         window.BookWorld.updateCartLinks();
+
+        // Завантажуємо меню жанрів
+        window.BookWorld.loadGenreMenu();
 
     }
 );

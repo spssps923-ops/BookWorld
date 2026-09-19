@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Жанр — BookWorld</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        📚 BookWorld
+    </div>
+
+    <nav class="navigation">
+
+        <a href="index.html">🏠 Головна</a>
+
+        <a href="fantasy.html">🐉 Фентезі</a>
+        <a href="sci-fi.html">🚀 Фантастика</a>
+        <a href="detective.html">🔎 Детектив</a>
+        <a href="romance.html">❤️ Романтика</a>
+        <a href="horror.html">👻 Жахи</a>
+        <a href="adventure.html">🗺️ Пригоди</a>
+        <a href="history.html">🏰 Історичні</a>
+        <a href="classic.html">📜 Класика</a>
+        <a href="thriller.html">🔥 Трилери</a>
+
+    </nav>
+
+    <a href="cart.html" class="cart-button">
+        🛒 Кошик
+    </a>
+
+</header>
+
+
+<main class="container">
+
+    <a href="index.html" class="home-link">
+        ← На головну
+    </a>
+
+    <!-- Назва жанру -->
+    <h1 id="genre-title">
+        📚 Завантаження...
+    </h1>
+
+    <!-- Кількість книг -->
+    <p id="genre-description">
+        Завантаження книг...
+    </p>
+
+    <!-- Книги -->
+    <div id="books-grid" class="books-grid">
+    </div>
+
+</main>
+
+
+<footer class="footer">
+    © 2026 BookWorld
+</footer>
+
+
+<script>
+
+/* ==========================================
+   BOOKWORLD — УНІВЕРСАЛЬНА СТОРІНКА ЖАНРУ
+   ========================================== */
+
+// Підключення до Supabase
+const genreDB = window.BookWorldSupabase;
+
+
+// Отримуємо код жанру з адреси
+// Наприклад:
+// genre.html?code=fantasy
+// genre.html?code=my-genre
+const urlParams = new URLSearchParams(window.location.search);
+
+const genreCode = urlParams.get("code");
+
+
+// Емодзі для стандартних жанрів
+const genreEmojis = {
+
+    fantasy: "🐉",
+
+    "sci-fi": "🚀",
+
+    detective: "🔎",
+
+    romance: "❤️",
+
+    horror: "👻",
+
+    adventure: "🗺️",
+
+    history: "🏰",
+
+    classic: "📜",
+
+    thriller: "🔥"
+
+};
+
+
+// Екранування HTML
+function escapeHTML(text) {
+
+    if (text === null || text === undefined) {
+        return "";
+    }
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+// Форматуємо ціну
+function formatPrice(price) {
+
+    if (price === null || price === undefined || price === "") {
+        return "Ціна не вказана";
+    }
+
+    return Number(price).toLocaleString("uk-UA") + " грн";
+}
+
+
+// Завантаження жанру
+async function loadGenre() {
+
+    const title = document.getElementById("genre-title");
+    const description = document.getElementById("genre-description");
+    const booksGrid = document.getElementById("books-grid");
+
+
+    // Якщо код жанру відсутній
+    if (!genreCode) {
+
+        title.textContent = "❌ Жанр не знайдено";
+
+        description.textContent =
+            "У посиланні відсутній код жанру.";
+
+        return;
+    }
+
+
+    try {
+
+        // Знаходимо жанр за його кодом
+        const {
+            data: genre,
+            error: genreError
+        } = await genreDB
+            .from("genres")
+            .select("*")
+            .eq("code", genreCode)
+            .maybeSingle();
+
+
+        if (genreError) {
+            throw genreError;
+        }
+
+
+        // Якщо такого жанру немає
+        if (!genre) {
+
+            title.textContent = "❌ Жанр не знайдено";
+
+            description.textContent =
+                "Такого жанру немає в BookWorld.";
+
+            return;
+        }
+
+
+        // Визначаємо емодзі
+        const emoji =
+            genreEmojis[genre.code] || "📚";
+
+
+        // Виводимо назву жанру
+        title.innerHTML =
+            `${emoji} ${escapeHTML(genre.name)}`;
+
+
+        // Завантажуємо книги цього жанру
+        const {
+            data: books,
+            error: booksError
+        } = await genreDB
+            .from("books")
+            .select("*")
+            .eq("genre_id", genre.id)
+            .eq("is_deleted", false)
+            .order("title");
+
+
+        if (booksError) {
+            throw booksError;
+        }
+
+
+        const bookList = books || [];
+
+
+        // Кількість книг
+        if (bookList.length === 0) {
+
+            description.textContent =
+                "У цьому жанрі поки немає книг.";
+
+        } else {
+
+            description.textContent =
+                `Книг у жанрі: ${bookList.length}`;
+        }
+
+
+        // Якщо книг немає
+        if (bookList.length === 0) {
+
+            booksGrid.innerHTML = `
+                <div class="empty-books">
+                    📚
+                    <h2>Книг поки немає</h2>
+                    <p>Адміністратор ще не додав книги до цього жанру.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        // Виводимо книги
+        booksGrid.innerHTML = "";
+
+
+        bookList.forEach(function(book) {
+
+            const card =
+                document.createElement("div");
+
+            card.className = "book-card";
+
+
+            // Якщо немає обкладинки
+            const image =
+                book.image_url ||
+                "https://via.placeholder.com/300x430?text=BookWorld";
+
+
+            card.innerHTML = `
+
+                <div class="book-card-image">
+
+                    <img
+                        src="${escapeHTML(image)}"
+                        alt="${escapeHTML(book.title)}"
+                    >
+
+                </div>
+
+                <div class="book-card-content">
+
+                    <h3>
+                        ${escapeHTML(book.title)}
+                    </h3>
+
+                    <p class="book-author">
+                        ${escapeHTML(book.author || "Автор невідомий")}
+                    </p>
+
+                    ${
+                        book.year
+                        ?
+                        `<p class="book-year">📅 ${escapeHTML(book.year)}</p>`
+                        :
+                        ""
+                    }
+
+                    <div class="book-card-bottom">
+
+                        <strong>
+                            ${formatPrice(book.price)}
+                        </strong>
+
+                        <button
+                            onclick="openBook('${escapeHTML(book.book_code || book.id)}')"
+                        >
+                            Детальніше
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+
+            booksGrid.appendChild(card);
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Помилка завантаження жанру:",
+            error
+        );
+
+
+        title.textContent =
+            "❌ Помилка";
+
+        description.textContent =
+            "Не вдалося завантажити жанр.";
+
+        booksGrid.innerHTML = `
+            <div class="empty-books">
+
+                <h2>Щось пішло не так</h2>
+
+                <p>
+                    Спробуй оновити сторінку.
+                </p>
+
+            </div>
+        `;
+    }
+
+}
+
+
+// Відкрити книгу
+function openBook(bookCode) {
+
+    window.location.href =
+        "book.html?id=" +
+        encodeURIComponent(bookCode);
+
+}
+
+
+// Запускаємо після завантаження сторінки
+document.addEventListener(
+    "DOMContentLoaded",
+    loadGenre
+);
+
+</script>
+
+</body>
+</html>
