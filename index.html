@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="uk">
 
@@ -29,6 +30,92 @@
     <!-- Підключення Supabase BookWorld -->
     <script src="supabase.js"></script>
 
+
+    <!-- Невеликі додаткові стилі саме для головної -->
+    <style>
+
+        /* Верхня частина сайту */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Навігація */
+        .navigation {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Інформація про користувача */
+        .user-info {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.18);
+            color: white;
+            font-weight: bold;
+            max-width: 220px;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Кнопки входу, виходу та адмінки */
+        .header-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 9px 14px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            color: #6a11cb;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .header-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* На маленькому екрані */
+        @media (max-width: 800px) {
+
+            .header {
+                justify-content: center;
+            }
+
+            .logo {
+                width: 100%;
+                text-align: center;
+            }
+
+            .navigation {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .user-info,
+            .header-button {
+                margin: 3px;
+            }
+
+        }
+
+    </style>
+
 </head>
 
 
@@ -37,7 +124,7 @@
 
 <!-- ==========================================
      ШАПКА САЙТУ
-     ========================================== -->
+========================================== -->
 
 <header class="header">
 
@@ -53,16 +140,9 @@
 
     <nav class="navigation">
 
-        <!--
-            Ці елементи потрібні script.js,
-            щоб він міг автоматично створити
-            меню жанрів.
-        -->
-
         <a href="index.html">
             🏠 Головна
         </a>
-
 
         <a
             href="cart.html"
@@ -74,18 +154,13 @@
     </nav>
 
 
-    <!-- ======================================
-         ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА
-         ====================================== -->
+    <!-- Інформація про користувача -->
 
     <div
         id="user-info"
         class="user-info"
     >
-
-        <!-- Сюди JavaScript виведе
-             інформацію про користувача -->
-
+        Гість
     </div>
 
 
@@ -131,7 +206,7 @@
 
 <!-- ==========================================
      ГОЛОВНА ЧАСТИНА
-     ========================================== -->
+========================================== -->
 
 <main class="container">
 
@@ -154,7 +229,7 @@
 
     <!-- ======================================
          ЖАНРИ
-         ====================================== -->
+    ====================================== -->
 
     <section class="genres-section">
 
@@ -169,24 +244,10 @@
         </p>
 
 
-        <!--
-            Цей блок залишаємо порожнім.
-
-            Жанри завантажуються автоматично
-            з Supabase через script.js.
-
-            Тому тут НЕ потрібно вручну писати:
-            Фентезі
-            Детектив
-            Романтику
-            тощо.
-        -->
-
         <div
             id="genres-grid"
             class="genres-grid"
         >
-
         </div>
 
 
@@ -196,7 +257,7 @@
 
     <!-- ======================================
          ІНФОРМАЦІЙНИЙ БЛОК
-         ====================================== -->
+    ====================================== -->
 
     <section class="info-section">
 
@@ -277,7 +338,7 @@
 
 <!-- ==========================================
      ПІДВАЛ
-     ========================================== -->
+========================================== -->
 
 <footer class="footer">
 
@@ -289,10 +350,9 @@
 
 <!-- ==========================================
      ОСНОВНИЙ JAVASCRIPT
-     ========================================== -->
+========================================== -->
 
 <script src="script.js"></script>
-
 
 
 <script>
@@ -420,9 +480,22 @@ async function checkUser() {
         // ПЕРЕВІРКА АДМІНА
         // ======================================
 
+        /*
+            Адмінка доступна двом ролям:
+
+            admin
+            super_admin
+
+            Тому твій super_admin
+            також повинен бачити кнопку.
+        */
+
         if (
             profile &&
-            profile.role === "admin"
+            (
+                profile.role === "admin" ||
+                profile.role === "super_admin"
+            )
         ) {
 
             adminButton.style.display =
@@ -576,3 +649,4 @@ document.addEventListener(
 </body>
 
 </html>
+```
